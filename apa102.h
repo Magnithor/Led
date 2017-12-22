@@ -3,10 +3,10 @@
 
   #include "fastgpioomega2.h"
   
-  typedef struct rgb_bright_color
+  typedef struct Rgb_bright_color
   {
         uint8_t red, green, blue, brightness;
-  } rgb_bright_color;
+  } Rgb_bright_color;
 
   
   
@@ -21,32 +21,42 @@
    * @param clockPin The Arduino pin number or name for the pin that will be
    *   used to control the APA102 clock input.
    */
-  template<uint8_t dataPin, uint8_t clockPin, uint16_t count> class APA102 
+  class APA102 
   {
-
      private:
+        uint16_t count;
+        uint8_t dataPin;
+        uint8_t clockPin;
         FastGpioOmega2 fastGpio;
      public:
-        struct Leds {
-          rgb_bright_color leds[count];
-        };
-  
-      void write(Leds *colors){
+        APA102(uint8_t dataPin, uint8_t clockPin, uint16_t count){
+          this->count = count;
+          this->dataPin = dataPin;
+          this->clockPin = clockPin;
+        }
+
+        uint16_t GetCount(){
+          return this->count;
+        }
+
+      void write(Rgb_bright_color *colors) {
           startFrame();
-          for(uint16_t i = 0; i < count; i++)
+          for(uint16_t i = 0; i < this->count; i++)
           {
-            sendColor(colors.leds[i]);
+            sendColor(colors[i]);
           }
+
           endFrame();
         }
+
       void TurnOff() {
         startFrame();
-        rgb_bright_color led;
+        Rgb_bright_color led;
         led.red = 0;
         led.green = 0;
         led.blue = 0;
         led.brightness = 0;
-        for(uint16_t i = 0; i < count; i++)
+        for(uint16_t i = 0; i < this->count; i++)
         {
           sendColor(led);
         }
@@ -102,7 +112,7 @@
        * when you have 66 LEDs or more, and also it results in unwanted white
        * pixels if you try to update fewer LEDs than are on your LED strip. */
 
-      for (uint16_t i = 0; i < (count + 14)/16; i++)
+      for (uint16_t i = 0; i < (this->count + 14)/16; i++)
       {
         transfer(0);
       }
@@ -128,7 +138,7 @@
      * documentation. */
     
 
-    void sendColor(rgb_bright_color color)
+    void sendColor(Rgb_bright_color color)
     {
       sendColor(color.red, color.green, color.blue, color.brightness);
     }
@@ -136,38 +146,38 @@
   protected:
     void init()
     {
-        this->fastGpio.Set(dataPin, 0);
-        this->fastGpio.Set(clockPin, 0);
-        this->fastGpio.SetDirection(dataPin, 1);
-        this->fastGpio.SetDirection(clockPin, 1);
+        this->fastGpio.Set(this->dataPin, 0);
+        this->fastGpio.Set(this->clockPin, 0);
+        this->fastGpio.SetDirection(this->dataPin, 1);
+        this->fastGpio.SetDirection(this->clockPin, 1);
     }
 
     void transfer(uint8_t b)
     {
-      this->fastGpio.Set(dataPin, b >> 7 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 6 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 5 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 4 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 3 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 2 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 1 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
-      this->fastGpio.Set(dataPin, b >> 0 & 1);
-      this->fastGpio.Set(clockPin, 1);
-      this->fastGpio.Set(clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 7 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 6 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 5 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 4 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 3 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 2 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 1 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
+      this->fastGpio.Set(this->dataPin, b >> 0 & 1);
+      this->fastGpio.Set(this->clockPin, 1);
+      this->fastGpio.Set(this->clockPin, 0);
     }
 
   };

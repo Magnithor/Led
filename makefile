@@ -15,8 +15,8 @@ OUTFILE := led
 
 all: led
 
-led: apa102.o httpServer.o module.o fastgpio.o fastgpioomega2.o  main.o
-	$(CXX) $(CFLAGS) apa102.o httpServer.o  module.o fastgpio.o fastgpioomega2.o main.o -o $(OUTFILE) $(LDFLAGS)
+led: apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o 
+	$(CXX) $(CFLAGS) apa102.o playBackItem.o playBack.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBackItemSolid.o main.o -o $(OUTFILE) $(LDFLAGS)
 
 main.o: main.cpp
 	$(CXX) $(CFLAGS) -c main.cpp  $(LDFLAGS)
@@ -36,8 +36,17 @@ apa102.o: apa102.cpp
 httpServer.o: httpServer.cpp
 	$(CXX) $(CFLAGS) -c httpServer.cpp  $(LDFLAGS)
 
-#urls.o: urls.cpp
-#	$(CXX) $(CFLAGS) -c urls.cpp  $(LDFLAGS)
+playBack.o: playBack.cpp
+	$(CXX) $(CFLAGS) -c playBack.cpp  $(LDFLAGS)
+
+playBackItem.o: playBackItem.cpp
+	$(CXX) $(CFLAGS) -c playBackItem.cpp  $(LDFLAGS)
+
+playBackItemSolid.o: playBackItemSolid.cpp
+	$(CXX) $(CFLAGS) -c playBackItemSolid.cpp  $(LDFLAGS)
+
+urls.o: urls.cpp
+	$(CXX) $(CFLAGS) -c urls.cpp  $(LDFLAGS)
 
 clean:
 	@rm -rf *.o $(OUTFILE)

@@ -36,6 +36,7 @@
         "sstream": "cpp",
         "tuple": "cpp",
         "xmemory": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "queue": "cpp"
     }
 }

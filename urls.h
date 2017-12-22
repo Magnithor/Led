@@ -5,8 +5,6 @@
 #include <map>
 #include <fstream>
 
-std::map<std::string, HttpResponseFunc> urlMaps;
-
 
 class Urls{
     private:
@@ -76,13 +74,5 @@ class Urls{
         }
     
 };
-
-
-Urls urls;
-
-void HttpResponse(HttpConnection* httpConnection) {
-    urls.HttpResponse(httpConnection);
-}
-
 
 #endif

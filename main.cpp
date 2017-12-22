@@ -9,16 +9,23 @@
 #include "apa102.h"
 #include "httpServer.h"
 #include "urls.h"
+#include "playBack.h"
+#include "playBackItemSolid.h"
 
 
-
+void HttpResponse(HttpConnection* httpConnection);
 
 volatile  int lastSignal = -1;
 HttpServer httpServer(8080, &HttpResponse);
 #define ledcount  144*3
-rgb_bright_color color[ledcount];
-APA102<(uint8_t)0, (uint8_t)1, (uint16_t) ledcount> apa102;
+APA102 apa102((uint8_t)0, (uint8_t)1, (uint16_t) ledcount);
+PlayBack playBack(&apa102);
 
+Urls urls;
+
+void HttpResponse(HttpConnection* httpConnection) {
+    urls.HttpResponse(httpConnection);
+}
 
 void sleep_milliseconds(uint32_t millis) {
   struct timespec sleep;
@@ -40,12 +47,13 @@ void Check() {
 		printf( " * Close http\n");
 		httpServer.Close();
 		printf( " * turn off led\n");				
-		apa102.TurnOff();
+		playBack.TurnOff();
 		printf( "exit\n");
 		exit(0);
 	}
 
 	httpServer.Check();
+	playBack.Update();
 }
 
 void StartService(){
@@ -92,6 +100,9 @@ void StartService(){
 
 int main(int argc, char* argv[])
 {	
+	PlayBackItemSolid *solid = new PlayBackItemSolid(&apa102, (uint8_t)0,(uint8_t)90,(uint8_t)0,(uint8_t)1);
+	playBack.Push(solid);
+
 	//StartService();
 
 	if (signal(SIGINT, sigHandler) != 0) {
@@ -104,28 +115,6 @@ int main(int argc, char* argv[])
 	int wait = 500;
 
 	while (true){
-		Check();
-	
-	
-		for (int i=0; i < ledcount; i++) {
-			color[i].blue = 20;
-			color[i].red =0;
-			color[i].green =40;
-			color[i].brightness = 1;
-		}
-		
-	//	apa102.write(color);
-		Check();
-		sleep_milliseconds(wait);
-
-		for (int i=0; i < ledcount; i++) {
-			color[i].blue = 0;
-			color[i].red =40;
-			color[i].green =0;
-			color[i].brightness = 1;
-		}
-		
-	//	apa102.write(color);
 		Check();
 		sleep_milliseconds(wait);
 	}
