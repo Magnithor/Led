@@ -4,14 +4,20 @@
 #include "httpServer.h"
 #include <map>
 #include <fstream>
-
+#include "json.h"
+#include <string>
+#include "apa102.h"
+#include "playBack.h"
 
 class Urls{
     private:
          void Root(HttpConnection* httpConnection) {    
             httpConnection->SetResponseContentType(std::string("text/html"));
             std::string str = std::string("Root\n");
-            httpConnection->SetResponseData(str);
+            json::Object o;
+            o.set(std::string("count"), this->apa102->getCount());
+            o.set(std::string("ledStatus"), this->apa102->getLedStatus());
+            httpConnection->SetResponseData(o.json());
         }
 
 
@@ -19,8 +25,14 @@ class Urls{
     private:
        // static const  
         std::map<std::string, void (Urls::*)(HttpConnection*)> urlMaps = {     {std::string("/"), &Urls::Root }        };
-
+        APA102 *apa102;
+        PlayBack *playBack;
     public:
+         Urls(APA102* apa102, PlayBack* playBack){
+             this->apa102 = apa102;
+             this->playBack = playBack;            
+         }
+
          void HttpResponse(HttpConnection* httpConnection)
          {    
             

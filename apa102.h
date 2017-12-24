@@ -23,34 +23,51 @@
    */
   class APA102 
   {
+    public:
+        enum LedStatus{
+          on,
+          off, 
+          unkown = -1
+        } ;
      private:
         uint16_t count;
         uint8_t dataPin;
         uint8_t clockPin;
+        LedStatus ledStatus;
         FastGpioOmega2 fastGpio;
      public:
         APA102(uint8_t dataPin, uint8_t clockPin, uint16_t count){
           this->count = count;
           this->dataPin = dataPin;
           this->clockPin = clockPin;
+          this->ledStatus = unkown;
         }
 
-        uint16_t GetCount(){
+        LedStatus getLedStatus() {
+          return this->ledStatus;
+        }
+
+        uint16_t getCount() {
           return this->count;
         }
-
-      void write(Rgb_bright_color *colors) {
-          startFrame();
+      
+        void write(Rgb_bright_color *colors) {
+          this->startFrame();
           for(uint16_t i = 0; i < this->count; i++)
           {
-            sendColor(colors[i]);
+            this->sendColor(colors[i]);
           }
 
-          endFrame();
+          this->endFrame();
+          this->ledStatus = on;
         }
 
       void TurnOff() {
-        startFrame();
+        if (this->ledStatus == off){
+          return;
+        }
+
+        this->startFrame();
         Rgb_bright_color led;
         led.red = 0;
         led.green = 0;
@@ -58,9 +75,11 @@
         led.brightness = 0;
         for(uint16_t i = 0; i < this->count; i++)
         {
-          sendColor(led);
+          this->sendColor(led);
         }
-        endFrame();
+
+        this->endFrame();
+        this->ledStatus = off;
       }
   private:
 
@@ -74,11 +93,11 @@
      * endFrame(). */
     void startFrame()
     {
-      init();
-      transfer(0);
-      transfer(0);
-      transfer(0);
-      transfer(0);
+      this->init();
+      this->transfer(0);
+      this->transfer(0);
+      this->transfer(0);
+      this->transfer(0);
     }
 
     /*! Sends an "End Frame" signal to the LED strip.  This is the last step in
@@ -114,12 +133,12 @@
 
       for (uint16_t i = 0; i < (this->count + 14)/16; i++)
       {
-        transfer(0);
+        this->transfer(0);
       }
 
       /* We call init() here to make sure we leave the data line driving 0
        * even if count is 0. */
-      init();
+      this->init();
     }
 
     /*! Sends a single 24-bit color and an optional 5-bit brightness value.
@@ -127,10 +146,10 @@
      * documentation. */
     void sendColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t brightness = 31)
     {
-      transfer(0b11100000 | brightness);
-      transfer(blue);
-      transfer(green);
-      transfer(red);
+      this->transfer(0b11100000 | brightness);
+      this->transfer(blue);
+      this->transfer(green);
+      this->transfer(red);
     }
 
     /*! Sends a single 24-bit color and an optional 5-bit brightness value.
@@ -140,7 +159,7 @@
 
     void sendColor(Rgb_bright_color color)
     {
-      sendColor(color.red, color.green, color.blue, color.brightness);
+      this->sendColor(color.red, color.green, color.blue, color.brightness);
     }
 
   protected:

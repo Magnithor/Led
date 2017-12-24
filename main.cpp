@@ -1,10 +1,4 @@
 #include <signal.h>
-#include <errno.h>
-#include <sched.h>
-#include <string.h>
-#include <sys/time.h>
-#include <time.h>
-#include <stdint.h>
 #include "fastgpioomega2.h"
 #include "apa102.h"
 #include "httpServer.h"
@@ -21,7 +15,7 @@ HttpServer httpServer(8080, &HttpResponse);
 APA102 apa102((uint8_t)0, (uint8_t)1, (uint16_t) ledcount);
 PlayBack playBack(&apa102);
 
-Urls urls;
+Urls urls(&apa102, &playBack);
 
 void HttpResponse(HttpConnection* httpConnection) {
     urls.HttpResponse(httpConnection);
@@ -100,7 +94,7 @@ void StartService(){
 
 int main(int argc, char* argv[])
 {	
-	PlayBackItemSolid *solid = new PlayBackItemSolid(&apa102, (uint8_t)0,(uint8_t)90,(uint8_t)0,(uint8_t)1);
+	PlayBackItemSolid *solid = new PlayBackItemSolid(&apa102, (uint8_t)0,(uint8_t)1,(uint8_t)0,(uint8_t)1);
 	playBack.Push(solid);
 
 	//StartService();

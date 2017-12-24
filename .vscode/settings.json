@@ -37,6 +37,16 @@
         "tuple": "cpp",
         "xmemory": "cpp",
         "xtree": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "algorithm": "cpp",
+        "cctype": "cpp",
+        "ctime": "cpp",
+        "deque": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "vector": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp"
     }
 }

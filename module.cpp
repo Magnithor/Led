@@ -69,7 +69,7 @@ int Module::_SetupAddress(unsigned long int blockBaseAddr, unsigned long int blo
 
 void Module::_WriteReg(unsigned long int registerOffset, unsigned long int value)
 {
-	if (verbosityLevel > 0)	printf("Writing register 0x%08lx with data 0x%08lx \n", (regAddress + registerOffset), value);
+//	if (verbosityLevel > 0)	printf("Writing register 0x%08lx with data 0x%08lx \n", (regAddress + registerOffset), value);
 
 	*(regAddress + registerOffset) = value;
 }
@@ -81,7 +81,7 @@ unsigned long int Module::_ReadReg(unsigned long int registerOffset)
 	// read the value 
 	value = *(regAddress + registerOffset);
 
-	if (verbosityLevel > 0)	printf("Read register 0x%08lx, data: 0x%08lx \n", (regAddress + registerOffset), value);
+//	if (verbosityLevel > 0)	printf("Read register 0x%08lx, data: 0x%08lx \n", (regAddress + registerOffset), value);
 
 	return(value);
 }
