@@ -63,7 +63,7 @@
         }
 
       void TurnOff() {
-        if (this->ledStatus == off){
+        if (this->ledStatus == off) {
           return;
         }
 
@@ -73,8 +73,7 @@
         led.green = 0;
         led.blue = 0;
         led.brightness = 0;
-        for(uint16_t i = 0; i < this->count; i++)
-        {
+        for(uint16_t i = 0; i < this->count; i++) {
           this->sendColor(led);
         }
 

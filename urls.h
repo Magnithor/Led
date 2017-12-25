@@ -8,23 +8,43 @@
 #include <string>
 #include "apa102.h"
 #include "playBack.h"
+#include "playBackItemSolid.h"
 
 class Urls{
     private:
          void Root(HttpConnection* httpConnection) {    
             httpConnection->SetResponseContentType(std::string("text/html"));
-            std::string str = std::string("Root\n");
             json::Object o;
             o.set(std::string("count"), this->apa102->getCount());
             o.set(std::string("ledStatus"), this->apa102->getLedStatus());
             httpConnection->SetResponseData(o.json());
         }
 
+        void Clear(HttpConnection* httpConnection) {    
+            this->playBack->Clear();
+            httpConnection->SetResponseContentType(std::string("text/html"));
+            json::Object o;
+            o.set(std::string("count"), this->apa102->getCount());
+            o.set(std::string("ledStatus"), this->apa102->getLedStatus());
+            httpConnection->SetResponseData(o.json());
+        }
 
+        void SolidColor(HttpConnection* httpConnection) {    
+            this->playBack->push(new SolidColor(this->apa102, 90, 0, 0, 1))
+            httpConnection->SetResponseContentType(std::string("text/html"));
+            json::Object o;
+            o.set(std::string("count"), this->apa102->getCount());
+            o.set(std::string("ledStatus"), this->apa102->getLedStatus());
+            httpConnection->SetResponseData(o.json());
+        }
 
     private:
        // static const  
-        std::map<std::string, void (Urls::*)(HttpConnection*)> urlMaps = {     {std::string("/"), &Urls::Root }        };
+        std::map<std::string, void (Urls::*)(HttpConnection*)> urlMaps = {    
+            {std::string("/"), &Urls::Root }
+            ,{std::string("/clear"), &Urls::Clear}
+            ,{std::string("/solidColor"), &Urls::SolidColor}
+        };
         APA102 *apa102;
         PlayBack *playBack;
     public:

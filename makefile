@@ -7,17 +7,20 @@ CFLAGS_ORG=-Os -std=c++11 -pipe -mno-branch-likely -mips32r2 -mtune=24kc -fno-ca
 CFLAGS=-lstdc++ -Werror -Wall -g -Os -std=c++11 -pipe -mno-branch-likely -mips32r2 -mtune=24kc -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -I /home/magni/source/staging_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/usr/include -I /home/magni/source/staging_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/include -I /home/magni/source/staging_dir/target-mipsel_24kc_musl/usr/include -I /home/magni/source/staging_dir/target-mipsel_24kc_musl/include
 LDFLAGS=-L/home/magni/source/staging_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/usr/lib -L/home/magni/source/staging_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/lib -L/home/magni/source/staging_dir/target-mipsel_24kc_musl/usr/lib -L/home/magni/source/staging_dir/target-mipsel_24kc_musl/lib
 USER_LIBS=
+TEST_CFLAGS=-lstdc++ -Werror -Wall -g -Os -std=c++11
 #KERNEL = /home/magni/source/build_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/linux-4.9.67
+
+TEST_OBJS = test.o jsonTest.o testJson.o
 
 export STAGING_DIR="/home/magni/source/staging_dir"
 
 TARGET1 := main
 OUTFILE := led
 
-all: led
+all: led test
 
 led: json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o 
-	$(CXX) $(CFLAGS) *.o -o $(OUTFILE) $(LDFLAGS)
+	$(CXX) $(CFLAGS) json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o -o $(OUTFILE) $(LDFLAGS)
 
 main.o: main.cpp
 	$(CXX) $(CFLAGS) -c main.cpp  $(LDFLAGS)
@@ -51,6 +54,19 @@ urls.o: urls.cpp
 
 json.o: json.cpp
 	$(CXX) $(CFLAGS) -c json.cpp  $(LDFLAGS)
+
+jsonTest.o: json.cpp
+	g++ $(TEST_CFLAGS) -c json.cpp -o jsonTest.o
+
+testJson.o: testJson.cpp
+	g++ $(TEST_CFLAGS) -c testJson.cpp 
+
+test.o: test.cpp
+	g++ $(TEST_CFLAGS) -c test.cpp 
+
+test: clean $(TEST_OBJS) 
+	g++ $(TEST_CFLAGS) $(TEST_OBJS) -o test -lcppunit 
+	./test
 
 clean:
 	@rm -rf *.o $(OUTFILE)
