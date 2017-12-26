@@ -62,7 +62,7 @@
           this->ledStatus = on;
         }
 
-      void TurnOff() {
+      void turnOff() {
         if (this->ledStatus == off) {
           return;
         }

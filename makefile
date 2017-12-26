@@ -17,7 +17,7 @@ export STAGING_DIR="/home/magni/source/staging_dir"
 TARGET1 := main
 OUTFILE := led
 
-all: led test
+all: test led
 
 led: json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o 
 	$(CXX) $(CFLAGS) json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o -o $(OUTFILE) $(LDFLAGS)
@@ -70,3 +70,4 @@ test: clean $(TEST_OBJS)
 
 clean:
 	@rm -rf *.o $(OUTFILE)
+	echo "clean done"

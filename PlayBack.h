@@ -15,33 +15,33 @@ public:
         this->apa102 = apa102;
     }
 
-    void TurnOff() {
-        this->apa102->TurnOff();
+    void turnOff() {
+        this->apa102->turnOff();
     }
 
-    void Push(PlayBackItem* item) {
+    void push(PlayBackItem* item) {
         this->playBackItems.push(item);
     }
 
-    void Clear() {
-        while(this->playBackItems.empty()) {
+    void clear() {
+        while(!this->playBackItems.empty()) {
             PlayBackItem* item = this->playBackItems.front();
             this->playBackItems.pop();
             delete item;
         }
 
-        this->TurnOff();
+        this->turnOff();
     }
 
-    void Update() {
+    void update() {
         if (this->playBackItems.empty()) {
-            this->TurnOff(); 
+            this->turnOff(); 
             return;   
         } 
         
         PlayBackItem* item = this->playBackItems.front();
         bool finished = true;
-        item->UpdateLed(finished);
+        item->updateLed(finished);
         if (finished) {
             this->playBackItems.pop();
             delete item;

@@ -20,10 +20,12 @@ public:
           this->colors[i].brightness = brightness;
       }  
   }
+
   ~PlayBackItemSolid(){
       delete[] this->colors;
   }
-  virtual void UpdateLed(bool &finished) override {
+  
+  virtual void updateLed(bool &finished) override {
       finished = false;
       this->led->write(this->colors);
  }

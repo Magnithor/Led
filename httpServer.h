@@ -40,6 +40,7 @@ class HttpConnection {
        std::string responseData;
        std::string responseContentType;
        std::string headName;
+       std::string headValue;
     public:
         char* sendData;
         int   sendPos;
@@ -49,12 +50,14 @@ class HttpConnection {
        int port;
        char data[bufferSize];  
        std::string path;         
+       std::string postValue;
        HttpMethod headerMethod;
        int dataLength; 
        time_t connectTime;
        time_t lastReciveTime;
+       int contentLength;
     private:
-       void ClearState() {
+       void clearState() {
             this->state = -1;
             this->ip[0] = 0;
             this->data[0] = 0;
@@ -67,8 +70,12 @@ class HttpConnection {
             this->sendData = nullptr;
             this->sendPos = 0;
             this->sendLength = 0;
+            this->headName = std::string("");
+            this->headValue = std::string("");
+            this->contentLength = -1;
+            this->postValue = std::string("");
        }
-       void FixData(int pos) {     
+       void fixData(int pos) {     
            int c =  pos;      
            for (int i = 0; i < pos; i++){
                this->data[i] = this->data[c++];
@@ -76,7 +83,7 @@ class HttpConnection {
 
            this->dataLength -= pos; 
        }
-       int FindSpace(int pos) {        
+       int findSpace(int pos) {        
            while (pos < this->dataLength){
                if (this->data[pos] == ' '){
                    return pos;
@@ -88,7 +95,7 @@ class HttpConnection {
            }
            return -1;
        }       
-       int FindDoubleDot(int pos) {        
+       int findDoubleDot(int pos) {        
            while (pos < this->dataLength){
                if (this->data[pos] == ':'){
                    return pos;
@@ -100,7 +107,7 @@ class HttpConnection {
            }
            return -1;
        }
-       int FindNewLine(int pos){
+       int findNewLine(int pos){
            while (pos < this->dataLength){
                if (this->data[pos] == '\n'){
                    return pos;
@@ -110,17 +117,17 @@ class HttpConnection {
            }
            return -1;           
        }
-       void Copy(int pos, int toPos, std::string& to){
+       void copy(int pos, int toPos, std::string& to){
             to.assign(this->data, pos, toPos-pos);
        }
     public:
         HttpConnection() {
-            this->ClearState();
+            this->clearState();
         }
 
-        void Connect(sockaddr_in &client) { 
+        void connect(sockaddr_in &client) { 
             gmtime(&this->connectTime);           
-            this->ClearState();
+            this->clearState();
             getnameinfo((struct sockaddr*)&client, sizeof(client), this->ip, sizeof(this->ip), 0, 0, NI_NUMERICHOST);
             if (((struct sockaddr*)&client)->sa_family == AF_INET) {
                 this->port = ntohs(((struct sockaddr_in*)&client)->sin_port);
@@ -131,7 +138,7 @@ class HttpConnection {
             printf("Connect - %s:%u\n", this->ip, this->port);
         }
 
-        HttpParse Received(char* data, int read) {
+        HttpParse received(char* data, int read) {
             gmtime(&this->lastReciveTime);    
             if (this->dataLength + read > bufferSize) {
                 return HttpParse::Error; //buffer overflow
@@ -158,7 +165,7 @@ class HttpConnection {
                         switch (this->data[pos]){
                             case 'G':
                                 if (this->dataLength - pos < 4){
-                                    this->FixData(pos);
+                                    this->fixData(pos);
                                     return HttpParse::GetMore;
                                 }
                                 if (this->data[pos+1] != 'E' || 
@@ -172,7 +179,7 @@ class HttpConnection {
                                 break;
                             case 'P':
                                 if (this->dataLength - pos < 5){
-                                    this->FixData(pos);
+                                    this->fixData(pos);
                                     return HttpParse::GetMore;
                                 }
                                 if (this->data[pos+1] != 'O' || 
@@ -190,38 +197,39 @@ class HttpConnection {
                         }                       
                         break;
                     case 2:  // http Path
-                        findSpace = this->FindSpace(pos);
+                        findSpace = this->findSpace(pos);
                         if (findSpace == -2){
                             return HttpParse::Error;
                         }
                         if (findSpace == -1){
-                            this->FixData(pos);
+                            this->fixData(pos);
                             return HttpParse::GetMore;   
                         }
 
-                        this->Copy(pos, findSpace, this->path);
+                        this->copy(pos, findSpace, this->path);
                         pos = findSpace + 1;
                         this->state = 3;
                         break;
                     case 3:  // http Protocol
-                        findNewLine = this->FindNewLine(pos);
+                        findNewLine = this->findNewLine(pos);
                         if (findNewLine == -1){
-                            this->FixData(pos);
+                            this->fixData(pos);
                             return HttpParse::GetMore;
                         }
                         pos = findNewLine + 1;
                         this->state = 4;                        
                         break;
                     case 4:  // Header Attr
-                         if  (pos+1 < this->dataLength && 
+                         if  (pos+2 < this->dataLength && 
                               this->data[pos+1] == '\n'){
+                                  pos += 2;
                                   this->state = 6;
                                   break;
                               }
 
-                        findDoubleDot = this->FindDoubleDot(pos);
+                        findDoubleDot = this->findDoubleDot(pos);
                         if (findDoubleDot == -1){
-                            this->FixData(pos);
+                            this->fixData(pos);
                             return HttpParse::GetMore;
                         }
                         if (findDoubleDot == -2) {
@@ -230,15 +238,26 @@ class HttpConnection {
                         }
 
                         headName = std::string(&this->data[pos], findDoubleDot - pos);
-                        printf("'%s'\n", headName.c_str());
+                      //  printf("'%s'\n", headName.c_str());
                         pos = findDoubleDot + 1;
                         this->state = 5;
                         break;
                     case 5:
-                        findNewLine = this->FindNewLine(pos);
+                        findNewLine = this->findNewLine(pos);
                         if (findNewLine == -1){
-                            this->FixData(pos);
+                            this->fixData(pos);
                             return HttpParse::GetMore;
+                        }
+
+                        if (headName.compare("Content-Length")==0){
+                            this->headValue = std::string(&this->data[pos], findNewLine - pos -1);
+                            printf("<%s>\n", this->headValue.c_str());
+                            try {
+                                this->contentLength = std::stoi(this->headValue);
+                            } catch (...){
+                                return HttpParse::Error;
+                            }
+                        
                         }
                         //printf("pos = %d, findNewLine = %d, delta = %d\n", pos, findNewLine, findNewLine - pos);                        
                         pos = findNewLine + 1;
@@ -246,6 +265,15 @@ class HttpConnection {
                         break;
                     break;
                     case 6:
+                        if (this->headerMethod == POST && this->contentLength != -1){
+                            if (this->dataLength - pos < this->contentLength) {
+                                this->fixData(pos);
+                                return HttpParse::GetMore;
+                            }
+
+                            this->postValue = std::string(&this->data[pos], this->contentLength);                            
+                            printf("pos = %d dataLength = %d contentLength = %d", pos, this->dataLength, this->contentLength);
+                        }
                         run = false;
                     break;
                     default: // Á ekki að fara hingað
@@ -263,25 +291,26 @@ class HttpConnection {
             printf("%s\n", data);
             return HttpParse::Ok;            
         }
-        void Close() {
+
+        void close() {
             if (this->state == -1){
                 return;
             }
 
             printf("Close - %s:%u\n\n", this->ip, this->port);
-            this->ClearState();
+            this->clearState();
         }
     
-        void SetResponseData(std::string value){
+        void setResponseData(std::string value){
             this->responseData = value;
         }
-        void SetResponseHttpStatus(int status){
+        void setResponseHttpStatus(int status){
             this->httpStatus = status;
         }
-        void SetResponseContentType(std::string value){
+        void setResponseContentType(std::string value){
             this->responseContentType = value;
         }
-        std::string GetResponse(){
+        std::string getResponse(){
             std::string status;
             switch(this->httpStatus){
                 case 200: status = std::string("200 OK"); break;
@@ -325,7 +354,7 @@ class HttpServer {
             this->listen_sd = -1;  
         }
 
-        bool Start(){
+        bool start(){
             struct sockaddr_in   addr;
             int on = 1;
             int rc;
@@ -337,7 +366,7 @@ class HttpServer {
             this->listen_sd = socket(AF_INET, SOCK_STREAM, 0);
             if (listen_sd < 0)
             {
-                this->Error("socket() failed");
+                this->error("socket() failed");
             }
 
             /*************************************************************/
@@ -346,7 +375,7 @@ class HttpServer {
             rc = setsockopt(this->listen_sd, SOL_SOCKET,  SO_REUSEADDR, (char *)&on, sizeof(on));
             if (rc < 0)
             {
-                this->Error("setsockopt() failed");
+                this->error("setsockopt() failed");
             }
 
             /*************************************************************/
@@ -357,7 +386,7 @@ class HttpServer {
             rc = ioctl(this->listen_sd, FIONBIO, (char *)&on);
             if (rc < 0)
             {
-                this->Error("ioctl() failed");
+                this->error("ioctl() failed");
             }
 
             /*************************************************************/
@@ -370,7 +399,7 @@ class HttpServer {
             rc = bind(this->listen_sd, (struct sockaddr *)&addr, sizeof(addr));
             if (rc < 0)
             {
-                this->Error("bind() failed");
+                this->error("bind() failed");
             }
 
             /*************************************************************/
@@ -379,7 +408,7 @@ class HttpServer {
             rc = listen(this->listen_sd, 32);
             if (rc < 0)
             {
-                this->Error("listen() failed");
+                this->error("listen() failed");
             }
 
             /*************************************************************/
@@ -392,7 +421,7 @@ class HttpServer {
             return true;
         }
 
-        bool Check()
+        bool check()
         {
             int on = 1;
             
@@ -468,7 +497,7 @@ class HttpServer {
                         close_conn = true;
                          if (close_conn)
                         {
-                            this->httpConnections[i].Close();
+                            this->httpConnections[i].close();
                             close(i);
                             FD_CLR(i, &this->master_set);
                             if (i == this->max_sd)
@@ -535,7 +564,7 @@ class HttpServer {
                         /* Add the new incoming connection to the     */
                         /* master read set                            */
                         /**********************************************/                        
-                        this->httpConnections[new_sd].Connect(client);
+                        this->httpConnections[new_sd].connect(client);
 
                         FD_SET(new_sd, &this->master_set);
                         if (new_sd > this->max_sd)
@@ -592,7 +621,7 @@ class HttpServer {
                         /**********************************************/
                         /* Data was received                          */
                         /**********************************************/                        
-                        switch (this->httpConnections[i].Received(this->buffer, rc)) {
+                        switch (this->httpConnections[i].received(this->buffer, rc)) {
                             case HttpParse::Error:
                                 close_conn = true;
                                 printf("Httparse::Error\n");
@@ -602,7 +631,7 @@ class HttpServer {
                             case HttpParse::Ok:
                                 printf("Httparse::Ok\n");
                                 this->httpResponseFunc(&this->httpConnections[i]);
-                                std::string sendData = this->httpConnections[i].GetResponse();
+                                std::string sendData = this->httpConnections[i].getResponse();
                                 //printf("%s\n", sendData.c_str());
                                 printf("Sent %d\n", sendData.length());
                                 this->httpConnections[i].sendData = (char*) sendData.c_str();
@@ -642,7 +671,7 @@ class HttpServer {
                     /*************************************************/
                     if (close_conn)
                     {
-                        this->httpConnections[i].Close();
+                        this->httpConnections[i].close();
                         close(i);
                         FD_CLR(i, &this->master_set);
                         if (i == this->max_sd)
@@ -658,12 +687,12 @@ class HttpServer {
             return true;
         }
 
-        bool Close()
+        bool closeAll()
         {
             for (int i=0; i <= this->max_sd; ++i)
             {
                 if (FD_ISSET(i, &this->master_set)){
-                    this->httpConnections[i].Close();
+                    this->httpConnections[i].close();
                     close(i);
                 }
             }
@@ -672,11 +701,11 @@ class HttpServer {
             return true;
         }
     private:
-        void Error(const char *msg)
+        void error(const char *msg)
         {
             perror(msg);
             if (this->listen_sd != -1) {
-                this->Close();
+                this->closeAll();
             }
             exit(-1);
         }

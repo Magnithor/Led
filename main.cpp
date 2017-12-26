@@ -7,18 +7,18 @@
 #include "playBackItemSolid.h"
 
 
-void HttpResponse(HttpConnection* httpConnection);
+void httpResponse(HttpConnection* httpConnection);
 
 volatile  int lastSignal = -1;
-HttpServer httpServer(8080, &HttpResponse);
+HttpServer httpServer(8080, &httpResponse);
 #define ledcount  144*3
 APA102 apa102((uint8_t)0, (uint8_t)1, (uint16_t) ledcount);
 PlayBack playBack(&apa102);
 
 Urls urls(&apa102, &playBack);
 
-void HttpResponse(HttpConnection* httpConnection) {
-    urls.HttpResponse(httpConnection);
+void httpResponse(HttpConnection* httpConnection) {
+    urls.httpResponse(httpConnection);
 }
 
 void sleep_milliseconds(uint32_t millis) {
@@ -32,25 +32,23 @@ void sigHandler(int signo) {
   lastSignal = signo;
 }
 
-
-
-void Check() {
+void check() {
 	if (lastSignal != -1){
 		lastSignal = -1;
 		printf( "\nShuting down...\n");
 		printf( " * Close http\n");
-		httpServer.Close();
+		httpServer.closeAll();
 		printf( " * turn off led\n");				
-		playBack.TurnOff();
+		playBack.turnOff();
 		printf( "exit\n");
 		exit(0);
 	}
 
-	httpServer.Check();
-	playBack.Update();
+	httpServer.check();
+	playBack.update();
 }
 
-void StartService(){
+void startService(){
 	        /* Our process ID and Session ID */
         pid_t pid, sid;
 
@@ -95,7 +93,7 @@ void StartService(){
 int main(int argc, char* argv[])
 {	
 	PlayBackItemSolid *solid = new PlayBackItemSolid(&apa102, (uint8_t)0,(uint8_t)1,(uint8_t)0,(uint8_t)1);
-	playBack.Push(solid);
+	playBack.push(solid);
 
 	//StartService();
 
@@ -104,12 +102,12 @@ int main(int argc, char* argv[])
 		  return -1;
 	}
 	
-	httpServer.Start();
+	httpServer.start();
 
 	int wait = 500;
 
 	while (true){
-		Check();
+		check();
 		sleep_milliseconds(wait);
 	}
 

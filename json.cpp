@@ -2,6 +2,101 @@
 #include <sstream>
 
 namespace json{
+    bool isWhiteChar(const char ch){
+        return (ch == 9 || ch == 10 || ch == 13 || ch == 32);
+    }
+    void ignoreWhiteSpace(size_t &pos, const std::string json){
+        while (pos < json.length() && isWhiteChar(json[pos])) {
+            pos++;
+        }
+    }
+    bool parseString(size_t &pos, const std::string json, std::string &value){
+        std::stringstream ss;
+        if (pos == json.length()){
+            return false;
+        }
+        if (json[pos] != '"'){ return false; }
+        pos++;
+        bool lastCharWasBackSlash = false;
+        while (pos < json.length()) {
+            switch (json[pos]){
+                case '\\':
+                    if (lastCharWasBackSlash){
+                        ss << '\\';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        lastCharWasBackSlash = true;
+                    }
+                break;
+                case '"':
+                    if (lastCharWasBackSlash){
+                        ss << '"';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        value.assign(ss.str());
+                        pos++;
+                        return true;
+                    }
+                break;
+                case 'b':
+                    if (lastCharWasBackSlash) {
+                        ss << '\b';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        ss << 'b';
+                    }
+                break;
+                case 'f':
+                    if (lastCharWasBackSlash) {
+                        ss << '\f';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        ss << 'f';
+                    }
+                break;
+                case 'n':
+                    if (lastCharWasBackSlash) {
+                        ss << '\n';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        ss << 'n';
+                    }
+                break;
+                case 'r':
+                    if (lastCharWasBackSlash) {
+                        ss << '\r';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        ss << 'r';
+                    }
+                break;
+                case 't':
+                    if (lastCharWasBackSlash) {
+                        ss << '\t';
+                        lastCharWasBackSlash = false;
+                    } else {
+                        ss << 't';
+                    }
+                break;
+
+                case '/':
+                    lastCharWasBackSlash = false;
+                    ss << '/';
+                    break;
+                default:
+                    if (lastCharWasBackSlash){
+                        return false;
+                    }
+                    ss << json[pos];
+                    break;
+                break;
+            }
+            
+            pos++;
+        }
+
+        return false;
+    }
     /*
 std::string escape_string( const std::string &input, const bool quote = false ) {
     static std::string map[256], *once = 0;
@@ -52,7 +147,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 if (found != this->valueMap.end()){
                     delete found->second;
                     if (removeItFromMap) {
-                        this->valueMap.erase (found); 
+                        this->valueMap.erase(found); 
                     }
                     return true;
                 }
@@ -64,6 +159,26 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         this->freeItem(key, false);
         this->valueMap[key] = new Value( value );
     }
+
+    int Object::getCount() {
+        return this->valueMap.size();
+    }
+
+    void Object::clear() {        
+        for (auto const& item : this->valueMap) {
+            delete item.second;
+        }
+
+        this->valueMap.clear();
+    }
+
+    const Value* Object::get( std::string key) {
+        return this->valueMap[key];
+    }
+    bool Object::hasKey(std::string key){
+        return this->valueMap.find( key ) != this->valueMap.end();
+    }
+
 
     std::string Object::json(){
         std::stringstream ss;        
@@ -86,12 +201,84 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         }
         ss << "}";
         return ss.str();        
-
+    }
+        
+    int Object::parse(const std::string json){
+        size_t pos = 0;
+        return this->parse(pos, json);
     }
 
+    int Object::parse(size_t &pos, const std::string json) {
+        this->clear();
+        ignoreWhiteSpace(pos, json);
+        if (pos == json.length() || json[pos] != '{'){
+            return 1;
+        }
 
+        pos++;
+        std::string key;
 
+        while (pos < json.length()){
+            ignoreWhiteSpace(pos, json);
+            char ch = json[pos];            
+            if (ch == '"'){
+                if (!parseString(pos, json, key)){
+                    return 2;
+                }
 
+                ignoreWhiteSpace(pos, json);
+                if (pos == json.length()){
+                    return 3;
+                }
+                ch = json[pos];
+                if (ch != ':'){
+                    return 4;
+                }
+
+                pos++;
+                ignoreWhiteSpace(pos, json);
+                if (pos == json.length()){
+                    return 5;
+                }
+                Value * value = new Value();
+                int parseValue = value->parse(pos, json);
+                if (parseValue != 0){
+                    return parseValue;
+                }
+                ignoreWhiteSpace(pos, json);
+                if (pos == json.length()){
+                    return 6;
+                }
+                ch = json[pos];
+                if (ch == ','){
+                    this->freeItem(key, false);
+                    this->valueMap[key] = value;
+                    pos++;
+                    continue;
+                }
+
+                if (ch == '}'){
+                    this->freeItem(key, false);
+                    this->valueMap[key] = value;
+                    pos++;
+                    return 0;
+                }
+                
+                delete value;
+                return 7;
+            } else {
+                if (ch == '}'){
+                    return 0;
+                } else {
+                    return 8;
+                }
+            } 
+        }
+
+        return false;
+    }
+
+// ---------------------- Value ---------------------
     void Value::json(std::stringstream &ss){
         switch(this->type){
             case intType:
@@ -104,6 +291,41 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 ss << "uups";
                 break;
         }
+    }
+
+    int Value::parse(size_t &pos, const std::string json){
+        if (json.length() == pos){
+            return 100;
+        }
+        switch (json[pos]){
+            case 'n': //null
+            break;
+            case '"': //string
+            break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': //number
+            break;
+            case '{': //object
+            break;
+            case '[':  //array          
+            break;
+            case 't':  //true
+            break;
+            case 'f': //false
+            break;
+            default:
+              return 101;
+        }
+
+        return 0;
     }
 
 }
