@@ -299,8 +299,10 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         }
         switch (json[pos]){
             case 'n': //null
+              return 102;
             break;
             case '"': //string
+              return 103;
             break;
             case '0':
             case '1':
@@ -312,14 +314,19 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             case '7':
             case '8':
             case '9': //number
+                return 104;
             break;
             case '{': //object
+                return 105;
             break;
             case '[':  //array          
+                return 105;
             break;
             case 't':  //true
+                return 106;
             break;
             case 'f': //false
+                return 107;
             break;
             default:
               return 101;
