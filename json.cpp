@@ -172,7 +172,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         this->valueMap.clear();
     }
 
-    const Value* Object::get( std::string key) {
+    Value* Object::get( std::string key) {
         return this->valueMap[key];
     }
     bool Object::hasKey(std::string key){
@@ -237,37 +237,38 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
 
                 pos++;
                 ignoreWhiteSpace(pos, json);
-                if (pos == json.length()){
+                if (pos == json.length()) {
                     return 5;
                 }
                 Value * value = new Value();
                 int parseValue = value->parse(pos, json);
-                if (parseValue != 0){
+                if (parseValue != 0) {
                     return parseValue;
                 }
                 ignoreWhiteSpace(pos, json);
-                if (pos == json.length()){
+                if (pos == json.length()) {
                     return 6;
                 }
                 ch = json[pos];
-                if (ch == ','){
+
+                if (ch == ',') {
                     this->freeItem(key, false);
                     this->valueMap[key] = value;
                     pos++;
                     continue;
                 }
 
-                if (ch == '}'){
+                if (ch == '}') {
                     this->freeItem(key, false);
                     this->valueMap[key] = value;
                     pos++;
                     return 0;
                 }
-                
+
                 delete value;
                 return 7;
             } else {
-                if (ch == '}'){
+                if (ch == '}') {
                     return 0;
                 } else {
                     return 8;
@@ -290,20 +291,41 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             case stringType:
                 ss << "uups";
                 break;
+            case boolType:
+                if  (this->valueBool){
+                    ss << "true";
+                } else {
+                    ss << "false";
+                }
+                break;
         }
     }
 
     int Value::parse(size_t &pos, const std::string json){
+        this->reset();
         if (json.length() == pos){
             return 100;
         }
+
         switch (json[pos]){
             case 'n': //null
+              if (json.length() > pos+4 && json[pos+1] == 'u' && json[pos+2] == 'l' && json[pos+3] == 'l'){
+                  type = nullType;
+                  pos +=4;
+                  return 0;
+              }
               return 102;
             break;
             case '"': //string
+                valueString = new std::string();
+              if (parseString(pos, json, *valueString)){
+                  type = stringType;
+                  return 0;
+              }
+              delete valueString;
               return 103;
             break;
+            case '-':
             case '0':
             case '1':
             case '2':
@@ -314,7 +336,33 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             case '7':
             case '8':
             case '9': //number
-                return 104;
+            {
+                bool minus = false;
+                if (json[pos] == '-') {
+                    minus = true;
+                    pos++;
+                    if (pos == json.length()){
+                        return 110;
+                    }                    
+                }
+
+                int value;
+                int sum = 0;
+                value = json[pos] - '0';
+                while (pos < json.length() && value >= 0 && value <= 9){
+                    sum = (sum*10) + value;
+                    pos++;
+                    value = json[pos] - '0';
+                }
+
+                this->type = intType;
+                if (minus){
+                    this->valueInt = sum * -1;
+                } else {
+                    this->valueInt = sum;
+                }
+                return 0;
+            }
             break;
             case '{': //object
                 return 105;
@@ -323,16 +371,26 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 return 105;
             break;
             case 't':  //true
+                if (json.length() > pos+4 && json[pos+1] == 'r' && json[pos+2] == 'u' && json[pos+3] == 'e'){
+                    pos += 4;
+                    this->type = boolType;
+                    this->valueBool = true;
+                    return 0;
+                }
                 return 106;
             break;
             case 'f': //false
+                if (json.length() > pos+5 && json[pos+1] == 'a' && json[pos+2] == 'l' && json[pos+3] == 's' && json[pos+4] == 'e'){
+                    pos += 5;
+                    this->type = boolType;
+                    this->valueBool = false;
+                    return 0;
+                }
                 return 107;
             break;
             default:
               return 101;
         }
-
-        return 0;
     }
 
 }

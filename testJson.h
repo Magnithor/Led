@@ -46,11 +46,33 @@ public:
     CPPUNIT_ASSERT( o.getCount() == 0);
 
     ss.clear(); pos = 0;
-    value = std::string("{\"green\":30, \"red\":49, \"blue\":42, \"brightness\":1}");
+    value = std::string("{\"green\":30, \"red\":-49, \"false\":false, \"true\":true, \"null\": null, \"str\":\"str\", \"blue\":42, \"brightness\":1}");
     p = o.parse(pos, value);
-    ss << pos << " " << value << " " << value.length() << " p =" << p << "\n";
-    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.getCount() == 4);
+    ss << pos << " " << value << " " << value.length() << " p =" << p << " count = " << o.getCount() << "\n";
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.getCount() == 8);
     
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("green")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("green")))->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("green")))->getInt() == 30);
+
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("red")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("red")))->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("red")))->getInt() == -49);
+  
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("false")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("false")))->isBool());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), !(o.get(std::string("false")))->getBool());
+
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("true")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("true")))->isBool());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("true")))->getBool());
+    
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("null")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("null")))->isNull());
+
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("str")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("str")))->isString());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("str")))->getString().compare(std::string("str")) == 0);
   }
 
   void testParseString(){

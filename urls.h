@@ -30,16 +30,25 @@ class Urls{
         }
 
         void solidColor(HttpConnection* httpConnection) {    
+            try {
             printf("Post data = %s\n", httpConnection->postValue.c_str());
             json::Object input;
             input.parse(httpConnection->postValue);
-            this->playBack->push(new PlayBackItemSolid(this->apa102, 90, 0, 0, 1));
+            
+            this->playBack->push(new PlayBackItemSolid(this->apa102, 
+                input.get(std::string("red"))->getInt(), 
+                input.get(std::string("green"))->getInt(), 
+                input.get(std::string("blue"))->getInt(), 
+                input.get(std::string("brightness"))->getInt()));
             httpConnection->setResponseContentType(std::string("text/html"));
             json::Object o;
             o.set(std::string("count"), this->apa102->getCount());
             o.set(std::string("ledStatus"), this->apa102->getLedStatus());
             o.set(std::string("inputCount"), (int)input.getCount());
             httpConnection->setResponseData(o.json());
+            } catch(...){
+                httpConnection->setResponseHttpStatus(500);
+            }
         }
 
     private:

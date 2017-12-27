@@ -315,6 +315,7 @@ class HttpConnection {
             switch(this->httpStatus){
                 case 200: status = std::string("200 OK"); break;
                 case 404: status = std::string("404 Not Found"); break;
+                case 500: status = std::string("500 Internal Server Error"); break;
                 default: status = std::to_string(this->httpStatus); break;
             }
 

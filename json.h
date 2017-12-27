@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string.h>
+#include <exception>
 
 namespace json
 {
@@ -28,7 +29,7 @@ namespace json
             }
         
             void set( std::string key,  int value);
-            const Value* get( std::string key);
+            Value* get( std::string key);
             bool hasKey(std::string key);
             int getCount();
             void clear();
@@ -45,15 +46,14 @@ namespace json
             Array(){                
             }
     };
-
+    
     class Value {
         public:
           enum Type {
             nullType,
             intType,
-            stringType/*,
-            BOOL,
-            NULL,
+            stringType,
+            boolType/*,
             ARRAY_,
             OBJECT_,
             INVALID_*/
@@ -63,6 +63,7 @@ namespace json
           union {
             int valueInt;
             std::string* valueString;
+            bool valueBool;
         };
         public:
             void json(std::stringstream &ss);
@@ -82,6 +83,9 @@ namespace json
             }
             void reset(){
                 //muna að hreinsa
+                if (this->type==stringType){
+                    delete this->valueString;
+                }
                 this->type = nullType; 
             }
 
@@ -89,6 +93,37 @@ namespace json
                 this->reset();
                 this->type = intType;
                 this->valueInt = value;
+            }
+
+            bool isNull(){
+                return this->type == nullType;
+            }
+            bool isInt(){
+                return this->type == intType;
+            }
+            int getInt(){
+                if (this->type == intType){
+                    return this->valueInt;
+                }
+                throw 1;
+            }
+            bool isBool(){
+                return this->type == boolType;
+            }
+            int getBool(){
+                if (this->type == boolType){
+                    return this->valueBool;
+                }
+                throw 1;
+            }
+            bool isString(){
+                return this->type == stringType;
+            }
+            std::string getString(){
+                if (this->type == stringType){
+                    return *this->valueString;
+                }
+                throw 1;
             }
 
             int parse(size_t &pos, const std::string json);
