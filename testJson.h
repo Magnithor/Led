@@ -24,11 +24,11 @@ public:
   {
     json::Object o;
 
-    CPPUNIT_ASSERT( o.getCount() == 0);
+    CPPUNIT_ASSERT( o.count () == 0);
     CPPUNIT_ASSERT( o.json() == "{}" );
     o.set(std::string("count"), 4);
     CPPUNIT_ASSERT( o.json() == "{\"count\":4}" );
-    CPPUNIT_ASSERT( o.getCount() == 1);    
+    CPPUNIT_ASSERT( o.count () == 1);    
   }
 
   void testParse(){    
@@ -38,18 +38,18 @@ public:
     std::string value = std::string(" { \"count\" : 4 } ");
     int p = o.parse(pos, value);
     ss << pos << " " << value << " " << value.length() << " p =" << p << "\n";
-    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.getCount() == 1);
-    CPPUNIT_ASSERT(o.getCount() == 1);
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.count() == 1);
+    CPPUNIT_ASSERT(o.count () == 1);
     CPPUNIT_ASSERT(o.hasKey(std::string("count")));
    // CPPUNIT_ASSERT( o.get(std::string("count"));
     o.parse(std::string("{ }"));
-    CPPUNIT_ASSERT( o.getCount() == 0);
+    CPPUNIT_ASSERT( o.count () == 0);
 
     ss.clear(); pos = 0;
     value = std::string("{\"green\":30, \"red\":-49, \"false\":false, \"true\":true, \"null\": null, \"str\":\"str\", \"blue\":42, \"brightness\":1}");
     p = o.parse(pos, value);
-    ss << pos << " " << value << " " << value.length() << " p =" << p << " count = " << o.getCount() << "\n";
-    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.getCount() == 8);
+    ss << pos << " " << value << " " << value.length() << " p =" << p << " count = " << o.count() << "\n";
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.count() == 8);
     
     CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("green")));
     CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("green")))->isInt());
@@ -73,6 +73,28 @@ public:
     CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("str")));
     CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("str")))->isString());
     CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("str")))->getString().compare(std::string("str")) == 0);
+
+
+    ss.clear(); pos = 0;
+    value = std::string("{\"array\":[30,1], \"object\":{\"n\":49}}");
+    p = o.parse(pos, value);
+    ss << pos << " " << value << " " << value.length() << " p =" << p << " count = " << o.count() << "\n";
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.count() == 2);
+
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("array")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("array")))->isArray());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("array")))->getArray()->count() == 2);
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("array")))->getArray()->get(0)->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("array")))->getArray()->get(0)->getInt() == 30);
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("array")))->getArray()->get(1)->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("array")))->getArray()->get(1)->getInt() == 1);
+
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("object")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("object")))->isObject());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("object")))->getObject()->count() == 1);
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("object")))->getObject()->hasKey(std::string("n")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("object")))->getObject()->get(std::string("n"))->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("object")))->getObject()->get(std::string("n"))->getInt()==49);
   }
 
   void testParseString(){

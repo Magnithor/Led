@@ -44,7 +44,7 @@ class Urls{
             json::Object o;
             o.set(std::string("count"), this->apa102->getCount());
             o.set(std::string("ledStatus"), this->apa102->getLedStatus());
-            o.set(std::string("inputCount"), (int)input.getCount());
+            o.set(std::string("inputCount"), (int)input.count());
             httpConnection->setResponseData(o.json());
             } catch(...){
                 httpConnection->setResponseHttpStatus(500);

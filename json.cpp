@@ -91,7 +91,7 @@ namespace json{
                     break;
                 break;
             }
-            
+
             pos++;
         }
 
@@ -147,7 +147,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 if (found != this->valueMap.end()){
                     delete found->second;
                     if (removeItFromMap) {
-                        this->valueMap.erase(found); 
+                        this->valueMap.erase(found);
                     }
                     return true;
                 }
@@ -160,11 +160,11 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         this->valueMap[key] = new Value( value );
     }
 
-    int Object::getCount() {
+    int Object::count() {
         return this->valueMap.size();
     }
 
-    void Object::clear() {        
+    void Object::clear() {
         for (auto const& item : this->valueMap) {
             delete item.second;
         }
@@ -181,10 +181,11 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
 
 
     std::string Object::json(){
-        std::stringstream ss;        
-        return this->json(ss);
+        std::stringstream ss;
+        this->json(ss);
+        return ss.str();
     }
-    std::string Object::json(std::stringstream &ss){
+    void Object::json(std::stringstream &ss){
         ss << "{";
         bool first = true;
         for (auto const& x : this->valueMap)
@@ -196,13 +197,12 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             }
             ss << "\"" << x.first << "\""   // string (key)
                     << ':';
-            
+
             x.second->json(ss);
         }
         ss << "}";
-        return ss.str();        
     }
-        
+
     int Object::parse(const std::string json){
         size_t pos = 0;
         return this->parse(pos, json);
@@ -279,6 +279,69 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         return false;
     }
 
+// ---------------------- Array ---------------------
+    void Array::json(std::stringstream &ss){
+        ss << "[";
+        bool first = false;
+        for (auto &item : this->values) {
+            if (first){
+                first = false;
+            } else {
+                ss << ",";
+            }
+            
+            item->json(ss);
+        }
+        ss << "]";
+    }
+    void Array::clear(){        
+        for (auto &item : this->values) {
+            delete item;
+        }
+
+        this->values.clear();
+    }
+    int Array::parse(size_t &pos, const std::string json) {
+        this->clear();
+        ignoreWhiteSpace(pos, json);
+        if (pos == json.length() || json[pos] != '['){
+            return 201;
+        }
+
+        pos++;       
+        ignoreWhiteSpace(pos, json);
+        if(pos == json.length()){
+            return 202;
+        }
+        if (json[pos]== ']'){
+            pos++;
+            return 0;
+        }
+        while (pos < json.length()){
+            Value* item = new Value();
+            int result = item->parse(pos, json);
+            if (result != 0) {
+                delete item;
+                return 1000 + result;
+            }
+            
+            this->values.push_back(item);
+            ignoreWhiteSpace(pos, json);
+            if (pos == json.length()){
+                return 204;
+            }
+            if (json[pos] == ']'){
+                pos++;
+                return 0;
+            }
+            if (json[pos] == ','){
+                pos++;                
+            }
+            ignoreWhiteSpace(pos, json);    
+        }
+
+        return 203;
+    }
 // ---------------------- Value ---------------------
     void Value::json(std::stringstream &ss){
         switch(this->type){
@@ -289,7 +352,37 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 ss << "null";
                 break;
             case stringType:
-                ss << "uups";
+                ss << "\"";
+                for (size_t i =0; i < this->valueString->length(); i++){
+                    switch ((*this->valueString)[i]){
+                        case '\\':
+                            ss << "\\\\";
+                        break;
+                        case '"':
+                            ss << "\\\"";
+                        break;
+                        case '\t':
+                            ss << "\\t";
+                        break;
+                        case '\b':
+                            ss << "\\b";
+                        break;
+                        case '\f':
+                            ss << "\\f";
+                        break;
+                        case '\n':
+                            ss << "\\n";
+                        break;
+                        case '\r':
+                            ss << "\\r";
+                        break;
+                        default:
+                            ss << (*this->valueString)[i];
+                        break;
+                    };
+                    ss << "\"uups er ekki buinn\"";
+                }
+                ss << "\"";
                 break;
             case boolType:
                 if  (this->valueBool){
@@ -298,6 +391,12 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                     ss << "false";
                 }
                 break;
+	    case arrayType:
+		this->valueArray->json(ss);
+		break;
+	    case objectType:
+		this->valueObject->json(ss);
+		break;
         }
     }
 
@@ -343,7 +442,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                     pos++;
                     if (pos == json.length()){
                         return 110;
-                    }                    
+                    }
                 }
 
                 int value;
@@ -365,10 +464,30 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             }
             break;
             case '{': //object
-                return 105;
+            {
+                this->valueObject = new Object();
+                this->type = objectType;
+                int result = this->valueObject->parse(pos, json);
+                if (result == 0){
+                    return 0;
+                }
+                    delete this->valueArray;
+                    this->type = nullType;
+                    return result;                      
+            }
             break;
-            case '[':  //array          
-                return 105;
+            case '[':  //array
+                {
+                    this->valueArray = new Array();
+                    this->type = arrayType;
+                    int result = this->valueArray->parse(pos, json);
+                    if (result == 0){
+                        return 0;
+                    }
+                    delete this->valueArray;
+                    this->type = nullType;
+                    return result;                    
+                }
             break;
             case 't':  //true
                 if (json.length() > pos+4 && json[pos+1] == 'r' && json[pos+2] == 'u' && json[pos+3] == 'e'){

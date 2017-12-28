@@ -18,22 +18,25 @@ namespace json
         private:
             std::map<std::string, Value*> valueMap;
             bool freeItem(const std::string key, bool removeItFromMap);
-            std::string json(std::stringstream &ss);
         public:
             Object() {
             }
+            ~Object(){
+                this->clear();
+            }
 
             void import(const std::string key, const Value &value);
-            bool remove(const std::string key) {                
+            bool remove(const std::string key) {
                 return this->freeItem(key, true);
             }
-        
+
             void set( std::string key,  int value);
             Value* get( std::string key);
             bool hasKey(std::string key);
-            int getCount();
+            int count();
             void clear();
             std::string json();
+            void json(std::stringstream &ss);
 
             int parse(const std::string json);
             int parse(size_t &pos, const std::string json);
@@ -43,20 +46,31 @@ namespace json
         private:
             std::vector<Value*> values;
         public:
-            Array(){                
+            Array(){
             }
+            ~Array(){
+                this->clear();
+            }
+            void json(std::stringstream &ss);
+            int parse(size_t &pos, const std::string json);
+            int count(){
+                return this->values.size();
+            }
+            Value* get(int pos){
+                return this->values.at(pos);
+            }
+            void clear();
     };
-    
+
     class Value {
         public:
           enum Type {
             nullType,
             intType,
             stringType,
-            boolType/*,
-            ARRAY_,
-            OBJECT_,
-            INVALID_*/
+            boolType,
+	    arrayType,
+	    objectType
         };
         private:
           Value::Type type;
@@ -64,6 +78,8 @@ namespace json
             int valueInt;
             std::string* valueString;
             bool valueBool;
+	    Array* valueArray;
+	    Object* valueObject;
         };
         public:
             void json(std::stringstream &ss);
@@ -83,10 +99,22 @@ namespace json
             }
             void reset(){
                 //muna að hreinsa
-                if (this->type==stringType){
-                    delete this->valueString;
+                switch (this->type){
+		    case stringType:
+	                delete this->valueString;
+		        break;
+		    case arrayType:
+			delete this->valueArray;
+			break;
+		    case objectType:
+			delete this->valueObject;
+			break;
+		    case boolType:
+		    case intType:
+		    case nullType:
+			break;
                 }
-                this->type = nullType; 
+                this->type = nullType;
             }
 
             void set(const int value){
@@ -125,6 +153,26 @@ namespace json
                 }
                 throw 1;
             }
+
+            bool isArray(){
+                return this->type == arrayType;
+            }
+            Array* getArray(){
+                if (this->type == arrayType){
+                    return this->valueArray;
+                }
+                throw 1;
+            }
+            bool isObject(){
+                return this->type == objectType;
+            }
+            Object* getObject(){
+                if (this->type == objectType){
+                    return this->valueObject;
+                }
+                throw 1;
+            }
+
 
             int parse(size_t &pos, const std::string json);
     };

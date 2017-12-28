@@ -220,9 +220,16 @@ class HttpConnection {
                         this->state = 4;                        
                         break;
                     case 4:  // Header Attr
-                         if  (pos+2 < this->dataLength && 
-                              this->data[pos+1] == '\n'){
+                        if  (pos+2 <= this->dataLength && 
+                              this->data[pos] == 13 && this->data[pos+1] == 10){
                                   pos += 2;
+                                  this->state = 6;
+                                  break;
+                              }
+
+                        if  (pos+1 <= this->dataLength && 
+                              this->data[pos] == 10){
+                                  pos += 1;
                                   this->state = 6;
                                   break;
                               }
@@ -233,12 +240,12 @@ class HttpConnection {
                             return HttpParse::GetMore;
                         }
                         if (findDoubleDot == -2) {
-                            printf("State 4 doubledot == 2\n");
+                            printf("State 4 doubledot == 2, pos=%d\n",pos);
                             return HttpParse::Error;
                         }
 
                         headName = std::string(&this->data[pos], findDoubleDot - pos);
-                      //  printf("'%s'\n", headName.c_str());
+                        //printf("'%s'\n", headName.c_str());
                         pos = findDoubleDot + 1;
                         this->state = 5;
                         break;
