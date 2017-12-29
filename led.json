@@ -1,0 +1,19 @@
+{
+	"apa102": {
+		"dataPin":0,
+		"clockPin":1,
+		"count":432
+	},
+	"httpServer":{
+		"port":8080,
+		"path":"/root/www"
+	},
+	"mqtt":{
+		"port":1883,
+		"ip":"192.168.28.2",
+		"topic":"led",
+		"user":null,
+		"password":null
+	}
+
+}
