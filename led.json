@@ -10,10 +10,12 @@
 	},
 	"mqtt":{
 		"port":1883,
-		"ip":"192.168.28.2",
+		"ip":"192.168.40.3",
 		"topic":"led",
 		"user":null,
-		"password":null
+		"password":null,
+		"clientId":"11514810603132",
+		"keepAlive":60
 	}
 
 }

@@ -11,6 +11,7 @@ TEST_CFLAGS=-lstdc++ -Werror -Wall -g -Os -std=c++11
 #KERNEL = /home/magni/source/build_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/linux-4.9.67
 
 TEST_OBJS = test.o jsonTest.o testJson.o
+OBJS = json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o mqtt.o
 
 export STAGING_DIR="/home/magni/source/staging_dir"
 
@@ -19,8 +20,11 @@ OUTFILE := led
 
 all: test led
 
-led: json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o 
-	$(CXX) $(CFLAGS) json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o -o $(OUTFILE) $(LDFLAGS)
+led: $(OBJS)
+	$(CXX) $(CFLAGS) $(OBJS) -o $(OUTFILE) $(LDFLAGS)
+
+mqtt.o: mqtt.cpp
+	$(CXX) $(CFLAGS) -c mqtt.cpp  $(LDFLAGS)
 
 main.o: main.cpp
 	$(CXX) $(CFLAGS) -c main.cpp  $(LDFLAGS)

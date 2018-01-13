@@ -85,10 +85,10 @@ class HttpConnection {
        }
        int findSpace(int pos) {        
            while (pos < this->dataLength){
-               if (this->data[pos] == ' '){
+               if (this->data[pos] == ' ') {
                    return pos;
                }
-               if (this->data[pos] == '\n'){
+               if (this->data[pos] == '\n') {
                    return -2;
                }
                pos++;
