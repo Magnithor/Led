@@ -50,6 +50,29 @@ class Urls{
                 httpConnection->setResponseHttpStatus(500);
             }
         }
+        void solidColorAndClear(HttpConnection* httpConnection) {    
+            try {
+            printf("Post data = %s\n", httpConnection->postValue.c_str());
+            json::Object input;
+            input.parse(httpConnection->postValue);
+            
+            this->playBack->clear();
+
+            this->playBack->push(new PlayBackItemSolid(this->apa102, 
+                input.get(std::string("red"))->getInt(), 
+                input.get(std::string("green"))->getInt(), 
+                input.get(std::string("blue"))->getInt(), 
+                input.get(std::string("brightness"))->getInt()));
+            httpConnection->setResponseContentType(std::string("text/html"));
+            json::Object o;
+            o.set(std::string("count"), this->apa102->getCount());
+            o.set(std::string("ledStatus"), this->apa102->getLedStatus());
+            o.set(std::string("inputCount"), (int)input.count());
+            httpConnection->setResponseData(o.json());
+            } catch(...){
+                httpConnection->setResponseHttpStatus(500);
+            }
+        }
 
     private:
        // static const  
@@ -57,6 +80,7 @@ class Urls{
             {std::string("/"), &Urls::root }
             ,{std::string("/clear"), &Urls::clear}
             ,{std::string("/solidColor"), &Urls::solidColor}
+            ,{std::string("/solidColorAndClear"), &Urls::solidColorAndClear}
         };
         APA102 *apa102;
         PlayBack *playBack;

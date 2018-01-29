@@ -83,7 +83,7 @@ class Mqtt{
                 case 1:
                     if ((this->bufferPos - this->parsePos) < 3) {
                         printf("mqtt not big \n");
-                        return 1;
+                        return 0;
                     }
                     if (this->buffer[this->parsePos] != 2){
                         return -1;
@@ -105,7 +105,7 @@ class Mqtt{
                         this->mqttConnected  = true;
                         this->parsePos++;
                         this->fixData();
-                        return 0;
+                        return 1;
                     }
                     return -1;
                 break;
@@ -122,9 +122,8 @@ class Mqtt{
         this->mqttConnected = false;
         this->clientId = clientId;
         this->keepAlive = keepAlive;
-
-
     }  
+    
     void check(){
         printf("-\n");
         if (!connected){
@@ -210,10 +209,15 @@ class Mqtt{
                 }
                 printf("\n");
 
-                switch(this->parse(rc)){
-                    case -1:
+                int parseResult = this->parse(rc);
+                switch(parseResult){
+                    case 0: //need more
+                    break;
+                    case 1: //login
+                    break;
+                    default:
                         this->connected = false;
-                        printf("parse(rc) == -1\n");
+                        printf("parse(rc) == %d\n", parseResult);
                         close(this->sockfd);
                     break;
                 }
@@ -230,6 +234,7 @@ class Mqtt{
         if (length > size) {
             return -1;
         }
+
         buffer[0] = 0x10; //Connect
         buffer[1] = 0x1a; //msg length
         buffer[2] = 0x00; //msg protocol name length
@@ -252,6 +257,25 @@ class Mqtt{
         return length;        
     }
 
+    static int createSubcribe(uint16_t identifier, std::string topic, char* buffer, int size){
+        int length = 6 + topic.length() + 1;
+        if (length > size) {
+            return -1;
+        }
+
+        buffer[0] = 0x82; //Subcripe
+        buffer[1] = length -1;
+        buffer[2] = identifier >> 8;
+        buffer[3] = identifier & 0xff;
+        buffer[4] = topic.length() >> 8;
+        buffer[5] = topic.length() & 0xff;
+        int pos = 6;
+        for (size_t i = 0; i < topic.length(); i++) {
+            buffer[pos + i] = topic[i];
+        }
+
+        buffer[length - 1] = 1;
+    }
     
 };
 
