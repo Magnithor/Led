@@ -2,26 +2,26 @@
 #include <sstream>
 
 namespace json{
-    bool isWhiteChar(const char ch){
+    bool isWhiteChar(const char ch) {
         return (ch == 9 || ch == 10 || ch == 13 || ch == 32);
     }
-    void ignoreWhiteSpace(size_t &pos, const std::string json){
+    void ignoreWhiteSpace(size_t &pos, const std::string json) {
         while (pos < json.length() && isWhiteChar(json[pos])) {
             pos++;
         }
     }
-    bool parseString(size_t &pos, const std::string json, std::string &value){
+    bool parseString(size_t &pos, const std::string json, std::string &value) {
         std::stringstream ss;
-        if (pos == json.length()){
+        if (pos == json.length()) {
             return false;
         }
-        if (json[pos] != '"'){ return false; }
+        if (json[pos] != '"') { return false; }
         pos++;
         bool lastCharWasBackSlash = false;
         while (pos < json.length()) {
-            switch (json[pos]){
+            switch (json[pos]) {
                 case '\\':
-                    if (lastCharWasBackSlash){
+                    if (lastCharWasBackSlash) {
                         ss << '\\';
                         lastCharWasBackSlash = false;
                     } else {
@@ -29,7 +29,7 @@ namespace json{
                     }
                 break;
                 case '"':
-                    if (lastCharWasBackSlash){
+                    if (lastCharWasBackSlash) {
                         ss << '"';
                         lastCharWasBackSlash = false;
                     } else {
@@ -84,7 +84,7 @@ namespace json{
                     ss << '/';
                     break;
                 default:
-                    if (lastCharWasBackSlash){
+                    if (lastCharWasBackSlash) {
                         return false;
                     }
                     ss << json[pos];
@@ -135,7 +135,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
 
     void Object::import(const std::string key, const Value &value) {
                 std::map<std::string, Value*>::iterator found = this->valueMap.find(key);
-                if (found != this->valueMap.end()){
+                if (found != this->valueMap.end()) {
                     delete found->second;
                 }
 
@@ -144,7 +144,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
 
     bool Object::freeItem(const std::string key, bool removeItFromMap) {
                 std::map<std::string, Value*>::iterator found = this->valueMap.find(key);
-                if (found != this->valueMap.end()){
+                if (found != this->valueMap.end()) {
                     delete found->second;
                     if (removeItFromMap) {
                         this->valueMap.erase(found);
@@ -155,7 +155,12 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 return false;
             }
 
-    void Object::set( std::string key,  int value) {
+    void Object::set(std::string key, const int value) {
+        this->freeItem(key, false);
+        this->valueMap[key] = new Value( value );
+    }
+
+    void Object::set(std::string key, const double value) {
         this->freeItem(key, false);
         this->valueMap[key] = new Value( value );
     }
@@ -175,22 +180,22 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
     Value* Object::get( std::string key) {
         return this->valueMap[key];
     }
-    bool Object::hasKey(std::string key){
+    bool Object::hasKey(std::string key) {
         return this->valueMap.find( key ) != this->valueMap.end();
     }
 
 
-    std::string Object::json(){
+    std::string Object::json() {
         std::stringstream ss;
         this->json(ss);
         return ss.str();
     }
-    void Object::json(std::stringstream &ss){
+    void Object::json(std::stringstream &ss) {
         ss << "{";
         bool first = true;
         for (auto const& x : this->valueMap)
         {
-            if (first){
+            if (first) {
                 first = false;
             } else {
                 ss << ",";
@@ -203,7 +208,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         ss << "}";
     }
 
-    int Object::parse(const std::string json){
+    int Object::parse(const std::string json) {
         size_t pos = 0;
         return this->parse(pos, json);
     }
@@ -211,27 +216,27 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
     int Object::parse(size_t &pos, const std::string json) {
         this->clear();
         ignoreWhiteSpace(pos, json);
-        if (pos == json.length() || json[pos] != '{'){
+        if (pos == json.length() || json[pos] != '{') {
             return 1;
         }
 
         pos++;
         std::string key;
 
-        while (pos < json.length()){
+        while (pos < json.length()) {
             ignoreWhiteSpace(pos, json);
             char ch = json[pos];            
-            if (ch == '"'){
-                if (!parseString(pos, json, key)){
+            if (ch == '"') {
+                if (!parseString(pos, json, key)) {
                     return 2;
                 }
 
                 ignoreWhiteSpace(pos, json);
-                if (pos == json.length()){
+                if (pos == json.length()) {
                     return 3;
                 }
                 ch = json[pos];
-                if (ch != ':'){
+                if (ch != ':') {
                     return 4;
                 }
 
@@ -280,11 +285,11 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
     }
 
 // ---------------------- Array ---------------------
-    void Array::json(std::stringstream &ss){
+    void Array::json(std::stringstream &ss) {
         ss << "[";
         bool first = false;
         for (auto &item : this->values) {
-            if (first){
+            if (first) {
                 first = false;
             } else {
                 ss << ",";
@@ -294,7 +299,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         }
         ss << "]";
     }
-    void Array::clear(){        
+    void Array::clear() {        
         for (auto &item : this->values) {
             delete item;
         }
@@ -304,20 +309,20 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
     int Array::parse(size_t &pos, const std::string json) {
         this->clear();
         ignoreWhiteSpace(pos, json);
-        if (pos == json.length() || json[pos] != '['){
+        if (pos == json.length() || json[pos] != '[') {
             return 201;
         }
 
         pos++;       
         ignoreWhiteSpace(pos, json);
-        if(pos == json.length()){
+        if(pos == json.length()) {
             return 202;
         }
-        if (json[pos]== ']'){
+        if (json[pos]== ']') {
             pos++;
             return 0;
         }
-        while (pos < json.length()){
+        while (pos < json.length()) {
             Value* item = new Value();
             int result = item->parse(pos, json);
             if (result != 0) {
@@ -327,14 +332,14 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             
             this->values.push_back(item);
             ignoreWhiteSpace(pos, json);
-            if (pos == json.length()){
+            if (pos == json.length()) {
                 return 204;
             }
-            if (json[pos] == ']'){
+            if (json[pos] == ']') {
                 pos++;
                 return 0;
             }
-            if (json[pos] == ','){
+            if (json[pos] == ',') {
                 pos++;                
             }
             ignoreWhiteSpace(pos, json);    
@@ -343,18 +348,21 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         return 203;
     }
 // ---------------------- Value ---------------------
-    void Value::json(std::stringstream &ss){
-        switch(this->type){
+    void Value::json(std::stringstream &ss) {
+        switch(this->type) {
             case intType:
                 ss << this->valueInt;
+                break;
+            case doubleType:
+                ss << this->valueDouble;                
                 break;
             case nullType:
                 ss << "null";
                 break;
             case stringType:
                 ss << "\"";
-                for (size_t i =0; i < this->valueString->length(); i++){
-                    switch ((*this->valueString)[i]){
+                for (size_t i =0; i < this->valueString->length(); i++) {
+                    switch ((*this->valueString)[i]) {
                         case '\\':
                             ss << "\\\\";
                         break;
@@ -385,7 +393,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 ss << "\"";
                 break;
             case boolType:
-                if  (this->valueBool){
+                if  (this->valueBool) {
                     ss << "true";
                 } else {
                     ss << "false";
@@ -400,15 +408,15 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         }
     }
 
-    int Value::parse(size_t &pos, const std::string json){
+    int Value::parse(size_t &pos, const std::string json) {
         this->reset();
-        if (json.length() == pos){
+        if (json.length() == pos) {
             return 100;
         }
 
-        switch (json[pos]){
+        switch (json[pos]) {
             case 'n': //null
-              if (json.length() > pos+4 && json[pos+1] == 'u' && json[pos+2] == 'l' && json[pos+3] == 'l'){
+              if (json.length() > pos+4 && json[pos+1] == 'u' && json[pos+2] == 'l' && json[pos+3] == 'l') {
                   type = nullType;
                   pos +=4;
                   return 0;
@@ -417,7 +425,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
             break;
             case '"': //string
                 valueString = new std::string();
-              if (parseString(pos, json, *valueString)){
+              if (parseString(pos, json, *valueString)) {
                   type = stringType;
                   return 0;
               }
@@ -440,7 +448,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 if (json[pos] == '-') {
                     minus = true;
                     pos++;
-                    if (pos == json.length()){
+                    if (pos == json.length()) {
                         return 110;
                     }
                 }
@@ -448,17 +456,42 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 int value;
                 int sum = 0;
                 value = json[pos] - '0';
-                while (pos < json.length() && value >= 0 && value <= 9){
+                while (pos < json.length() && value >= 0 && value <= 9) {
                     sum = (sum*10) + value;
                     pos++;
                     value = json[pos] - '0';
                 }
+                
+                if (json[pos] == '.') {
+                    pos++;
+                    if (pos == json.length()) {
+                        return 111;
+                    }
+                    int frac = 0;
+                    int divide = 1;
+                    value = json[pos] - '0';
+                    while (pos < json.length() && value >= 0 && value <= 9) {
+                        frac = (frac*10) + value;
+                        pos++;
+                        divide *= 10;
+                        value = json[pos] - '0';                        
+                    }
 
-                this->type = intType;
-                if (minus){
-                    this->valueInt = sum * -1;
-                } else {
-                    this->valueInt = sum;
+                    this->type = doubleType;
+                    this->valueDouble = (double)frac / (double)divide;
+                    this->valueDouble += sum;
+                    if (minus) {
+                        this->valueDouble *= -1;
+                    }
+                } 
+                else 
+                {
+                    this->type = intType;
+                    if (minus) {
+                        this->valueInt = sum * -1;
+                    } else {
+                        this->valueInt = sum;
+                    }
                 }
                 return 0;
             }
@@ -468,7 +501,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 this->valueObject = new Object();
                 this->type = objectType;
                 int result = this->valueObject->parse(pos, json);
-                if (result == 0){
+                if (result == 0) {
                     return 0;
                 }
                     delete this->valueArray;
@@ -481,7 +514,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                     this->valueArray = new Array();
                     this->type = arrayType;
                     int result = this->valueArray->parse(pos, json);
-                    if (result == 0){
+                    if (result == 0) {
                         return 0;
                     }
                     delete this->valueArray;
@@ -490,7 +523,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 }
             break;
             case 't':  //true
-                if (json.length() > pos+4 && json[pos+1] == 'r' && json[pos+2] == 'u' && json[pos+3] == 'e'){
+                if (json.length() > pos+4 && json[pos+1] == 'r' && json[pos+2] == 'u' && json[pos+3] == 'e') {
                     pos += 4;
                     this->type = boolType;
                     this->valueBool = true;
@@ -499,7 +532,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 return 106;
             break;
             case 'f': //false
-                if (json.length() > pos+5 && json[pos+1] == 'a' && json[pos+2] == 'l' && json[pos+3] == 's' && json[pos+4] == 'e'){
+                if (json.length() > pos+5 && json[pos+1] == 'a' && json[pos+2] == 'l' && json[pos+3] == 's' && json[pos+4] == 'e') {
                     pos += 5;
                     this->type = boolType;
                     this->valueBool = false;

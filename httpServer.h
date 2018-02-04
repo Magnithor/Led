@@ -338,6 +338,8 @@ class HttpConnection {
                 ss << std::string("\n");
             }
 
+            ss << std::string("Access-Control-Allow-Origin: *\n");
+
             ss << std::string("\n");
             ss << this->responseData;
             return ss.str();

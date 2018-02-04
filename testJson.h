@@ -27,8 +27,9 @@ public:
     CPPUNIT_ASSERT( o.count () == 0);
     CPPUNIT_ASSERT( o.json() == "{}" );
     o.set(std::string("count"), 4);
-    CPPUNIT_ASSERT( o.json() == "{\"count\":4}" );
-    CPPUNIT_ASSERT( o.count () == 1);    
+    o.set(std::string("d"), 4.2);
+    CPPUNIT_ASSERT_MESSAGE(o.json(), o.json() == "{\"count\":4,\"d\":4.2}" );
+    CPPUNIT_ASSERT( o.count () == 2);    
   }
 
   void testParse(){    
@@ -46,14 +47,21 @@ public:
     CPPUNIT_ASSERT( o.count () == 0);
 
     ss.clear(); pos = 0;
-    value = std::string("{\"green\":30, \"red\":-49, \"false\":false, \"true\":true, \"null\": null, \"str\":\"str\", \"blue\":42, \"brightness\":1}");
+    value = std::string("{\"d\":2.12, \"green\":30, \"red\":-49, \"false\":false, \"true\":true, \"null\": null, \"str\":\"str\", \"blue\":42, \"brightness\":1}");
     p = o.parse(pos, value);
     ss << pos << " " << value << " " << value.length() << " p =" << p << " count = " << o.count() << "\n";
-    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.count() == 8);
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.count() == 9);
+
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("d")));
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.get(std::string("d"))->isDouble());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), !o.get(std::string("d"))->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.get(std::string("d"))->getDouble() == 2.12);
     
     CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("green")));
     CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("green")))->isInt());
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("green")))->isDouble());
     CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("green")))->getInt() == 30);
+    CPPUNIT_ASSERT_MESSAGE(ss.str(), o.get(std::string("green"))->getDouble() == 30.0);
 
     CPPUNIT_ASSERT_MESSAGE(ss.str(), o.hasKey(std::string("red")));
     CPPUNIT_ASSERT_MESSAGE(ss.str(), (o.get(std::string("red")))->isInt());

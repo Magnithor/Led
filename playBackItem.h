@@ -5,7 +5,7 @@
 
 class PlayBackItem {
 public:
-  virtual void updateLed(bool &finished) = 0;
+  virtual int updateLed(bool &finished) = 0;
    virtual ~PlayBackItem() {}
 };
 #endif

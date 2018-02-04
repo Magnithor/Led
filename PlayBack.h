@@ -33,19 +33,20 @@ public:
         this->turnOff();
     }
 
-    void update() {
+    int update() {
         if (this->playBackItems.empty()) {
             this->turnOff(); 
-            return;   
+            return -1;   
         } 
         
         PlayBackItem* item = this->playBackItems.front();
         bool finished = true;
-        item->updateLed(finished);
+        int requestWait = item->updateLed(finished);
         if (finished) {
             this->playBackItems.pop();
             delete item;
         }
+        return requestWait;
     }
 };
 

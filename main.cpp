@@ -5,7 +5,7 @@
 #include "httpServer.h"
 #include "urls.h"
 #include "playBack.h"
-#include "playBackItemSolid.h"
+#include "playBackItemSlide.h"
 #include "json.h"
 #include "mqtt.h"
 
@@ -17,7 +17,7 @@ Urls urls(&apa102, &playBack);
 
 
 HttpServer* httpServer;
-Mqtt* mqtt;
+//Mqtt* mqtt;
 
 void httpResponse(HttpConnection* httpConnection);
 
@@ -38,7 +38,7 @@ void sigHandler(int signo) {
   lastSignal = signo;
 }
 
-void check() {
+int check() {
 	if (lastSignal != -1){
 		lastSignal = -1;
 		printf( "\nShuting down...\n");
@@ -48,15 +48,15 @@ void check() {
 		playBack.turnOff();
 		printf( "exit\n");
                 delete httpServer;
-                delete mqtt;
+               // delete mqtt;
 		exit(0);
 	}
 
 	httpServer->check();
-        printf(":\n");
-        mqtt->check();
-        printf(".\n");
-	playBack.update();
+   //     printf(":\n");
+     //   mqtt->check();
+     //   printf(".\n");
+	return playBack.update();
 }
 
 void startService(){
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 
                 httpServer = new HttpServer(httpPort, &httpResponse);
         }
-
+/*
         {
                 std::string configKey = std::string("mqtt");
                 std::string configPort = std::string("port");
@@ -201,9 +201,13 @@ int main(int argc, char* argv[])
                 mqtt = new Mqtt(port, ip, clientId, keepAlive);
         }
 
-
-	PlayBackItemSolid *solid = new PlayBackItemSolid(&apa102, (uint8_t)0,(uint8_t)1,(uint8_t)0,(uint8_t)1);
-	playBack.push(solid);
+*/
+	PlayBackItem *item = new PlayBackItemSlide(&apa102, 
+                (uint8_t)0,(uint8_t)255,(uint8_t)0,(uint8_t)1,
+                (uint8_t)0,(uint8_t)0,(uint8_t)255,(uint8_t)1,
+                30
+        );
+	playBack.push(item);
 
 	//StartService();
 
@@ -217,8 +221,12 @@ int main(int argc, char* argv[])
 	int wait = 500;
 
 	while (true){
-		check();
-		sleep_milliseconds(wait);
+		int waitRequest = check();
+                if (waitRequest < 0 || waitRequest > wait) {
+		        sleep_milliseconds(wait);
+                } else {
+                        sleep_milliseconds(waitRequest);
+                }
 	}
 
 	printf("Hello: Adalsteinn\n\n");

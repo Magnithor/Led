@@ -30,8 +30,9 @@ namespace json
                 return this->freeItem(key, true);
             }
 
-            void set( std::string key,  int value);
-            Value* get( std::string key);
+            void set(std::string key, const int value);
+            void set(std::string key, const double value);
+            Value* get(std::string key);
             bool hasKey(std::string key);
             int count();
             void clear();
@@ -53,10 +54,10 @@ namespace json
             }
             void json(std::stringstream &ss);
             int parse(size_t &pos, const std::string json);
-            int count(){
+            int count() {
                 return this->values.size();
             }
-            Value* get(int pos){
+            Value* get(int pos) {
                 return this->values.at(pos);
             }
             void clear();
@@ -69,13 +70,15 @@ namespace json
             intType,
             stringType,
             boolType,
-	    arrayType,
-	    objectType
+            arrayType,
+            objectType,
+            doubleType
         };
         private:
           Value::Type type;
           union {
             int valueInt;
+            double valueDouble;
             std::string* valueString;
             bool valueBool;
 	    Array* valueArray;
@@ -83,15 +86,19 @@ namespace json
         };
         public:
             void json(std::stringstream &ss);
-            Value(){
+            Value() {
                 this->type = nullType;
             }
-            Value(const int value){
+            Value(const int value) {
                 this->type = intType;
                 this->valueInt = value;
             }
+            Value(const double value) {
+                this->type = doubleType;
+                this->valueDouble = value;
+            }
 
-            ~Value(){}
+            ~Value() {}
             void import( const Value &other ){
                 if (this != &other){
 
@@ -100,27 +107,34 @@ namespace json
             void reset(){
                 //muna að hreinsa
                 switch (this->type){
-		    case stringType:
-	                delete this->valueString;
-		        break;
-		    case arrayType:
-			delete this->valueArray;
-			break;
-		    case objectType:
-			delete this->valueObject;
-			break;
-		    case boolType:
-		    case intType:
-		    case nullType:
-			break;
+                    case stringType:
+                        delete this->valueString;
+                        break;
+                    case arrayType:
+                        delete this->valueArray;
+                        break;
+                    case objectType:
+                        delete this->valueObject;
+                        break;
+                    case boolType:
+                    case intType:
+                    case doubleType:
+                    case nullType:
+		    	        break;
                 }
                 this->type = nullType;
             }
 
-            void set(const int value){
+            void set(const int value) {
                 this->reset();
                 this->type = intType;
                 this->valueInt = value;
+            }
+
+            void set(const double value) {
+                this->reset();
+                this->type = doubleType;
+                this->valueDouble = value;
             }
 
             bool isNull(){
@@ -135,6 +149,18 @@ namespace json
                 }
                 throw 1;
             }
+            bool isDouble(){
+                return this->type == intType || this->type == doubleType;
+            }
+            double getDouble(){
+                if (this->type == intType){
+                    return this->valueInt;
+                } else if (this->type == doubleType) {
+                    return this->valueDouble;
+                }
+                throw 1;
+            }
+            
             bool isBool(){
                 return this->type == boolType;
             }
