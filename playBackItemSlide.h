@@ -4,6 +4,8 @@
 #include "playBackItem.h"
 #include "apa102.h"
 #include <sys/time.h>
+#include "json.h"
+#include <string>
 
 class PlayBackItemSlide : public PlayBackItem {
 private:
@@ -18,43 +20,15 @@ private:
   bool hasTimeRun;
   timeval now;
 public:
-  PlayBackItemSlide(APA102 *apa102, 
-        uint8_t redFrom, uint8_t greenFrom, uint8_t blueFrom, uint8_t brightnessFrom,
-        uint8_t redTo, uint8_t greenTo, uint8_t blueTo, uint8_t brightnessTo,
-        double timeCircle)  {
-      this->first = true;
-
-      this->timeCircle = timeCircle;
-
-      this->led = apa102;
-      
-      this->redFrom = redFrom;
-      this->greenFrom = greenFrom;
-      this->blueFrom = blueFrom;
-      this->brightnessFrom = brightnessFrom;
-      
-      this->redDelta = redTo - redFrom;
-      this->greenDelta = greenTo - greenFrom;
-      this->blueDelta = blueTo - blueFrom;
-      this->brightnessDelta = brightnessTo - brightnessFrom;
-      this->hasTimeRun = false;
-  }
-
-  PlayBackItemSlide(APA102 *apa102, 
-        uint8_t redFrom, uint8_t greenFrom, uint8_t blueFrom, uint8_t brightnessFrom,
-        uint8_t redTo, uint8_t greenTo, uint8_t blueTo, uint8_t brightnessTo,
-        double timeCircle, double timeRun) : PlayBackItemSlide(apa102, 
-            redFrom, greenFrom, blueFrom, brightnessFrom,
-            redTo, greenTo, blueTo, brightnessTo,
-            timeCircle
-        )  
-  {
-      this->hasTimeRun = true;
-      this->timeRun = timeRun;
+  PlayBackItemSlide(APA102 *apa102, json::Object input) {
+      this->colors = NULL;
+      this->led = apa102;      
   }
 
   ~PlayBackItemSlide() {
-      delete[] this->colors;
+      if (this->colors == NULL) {
+        delete[] this->colors;
+      }
   }
   
   virtual int updateLed(bool &finished) override {
@@ -73,18 +47,13 @@ public:
       nowD /= 1000000;
       nowD += this->now.tv_sec;
      
-      //time(&this->now);
-      //clock_t deltaTime = clock() - this->startTime;
-      double deltaTime = nowD - this->startTimer;// difftime(this->now, this->startTimer);
-   //   printf("%ld %ld %f\n", this->now.tv_sec, this->now.tv_usec, deltaTime);
+      double deltaTime = nowD - this->startTimer;
 
       double radio = (double)deltaTime / (double) this->timeCircle;
       double frac = radio - (long)radio;
       if ( (long)radio% 2 == 1) {
           frac = 1 - frac;
       }
-
-    //  printf("%f\n", frac);
 
       finished = false;
       for (int i =0; i < c; i++) {

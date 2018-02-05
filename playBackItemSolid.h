@@ -18,6 +18,7 @@ private:
 
 public:
   PlayBackItemSolid(APA102 *apa102, uint8_t red, uint8_t green, uint8_t blue, uint8_t brightness) {
+      this->colors = NULL;
       this->led = apa102;
       this->red = red;
       this->green = green;
@@ -36,8 +37,10 @@ public:
       this->timeRun = timeRun;
   }
 
-  ~PlayBackItemSolid(){
-      delete[] this->colors;
+  ~PlayBackItemSolid() {
+      if (this->colors != NULL) {
+        delete[] this->colors;
+      }
   }
   
   virtual int updateLed(bool &finished) override {

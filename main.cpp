@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
         }
 
 */
-	PlayBackItem *item = new PlayBackItemSlide(&apa102, 
+	PlayBackItem *item = new PlayBackItemFade(&apa102, 
                 (uint8_t)0,(uint8_t)255,(uint8_t)0,(uint8_t)1,
                 (uint8_t)0,(uint8_t)0,(uint8_t)255,(uint8_t)1,
                 30

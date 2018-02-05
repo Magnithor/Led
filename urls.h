@@ -10,6 +10,7 @@
 #include "playBack.h"
 #include "playBackItemSolid.h"
 #include "playBackItemSlide.h"
+#include "playBackItemFade.h"
 
 class Urls{
     private:
@@ -33,34 +34,6 @@ class Urls{
             }
         }
 
-        void AddSlideColor(json::Object input) {
-            if (input.hasKey(std::string("time"))) {
-                this->playBack->push(new PlayBackItemSlide(this->apa102,                
-                    input.get(std::string("redFrom"))->getInt(), 
-                    input.get(std::string("greenFrom"))->getInt(), 
-                    input.get(std::string("blueFrom"))->getInt(), 
-                    input.get(std::string("brightnessFrom"))->getInt(),
-                    input.get(std::string("redTo"))->getInt(), 
-                    input.get(std::string("greenTo"))->getInt(), 
-                    input.get(std::string("blueTo"))->getInt(), 
-                    input.get(std::string("brightnessTo"))->getInt(),
-                    input.get(std::string("timeCircle"))->getDouble(),
-                    input.get(std::string("time"))->getDouble()             
-                    ));
-            } else {
-                this->playBack->push(new PlayBackItemSlide(this->apa102,                
-                    input.get(std::string("redFrom"))->getInt(), 
-                    input.get(std::string("greenFrom"))->getInt(), 
-                    input.get(std::string("blueFrom"))->getInt(), 
-                    input.get(std::string("brightnessFrom"))->getInt(),
-                    input.get(std::string("redTo"))->getInt(), 
-                    input.get(std::string("greenTo"))->getInt(), 
-                    input.get(std::string("blueTo"))->getInt(), 
-                    input.get(std::string("brightnessTo"))->getInt(),
-                    input.get(std::string("timeCircle"))->getDouble()                    
-                    ));
-            }
-        }
     private:
          void root(HttpConnection* httpConnection) {    
             httpConnection->setResponseContentType(std::string("text/html"));
@@ -122,13 +95,19 @@ class Urls{
             }
         }
 
-        void slideColor(HttpConnection* httpConnection) {    
+        void fadeColor(HttpConnection* httpConnection, bool clear) {    
             try {
                 printf("Post data = %s\n", httpConnection->postValue.c_str());
                 json::Object input;
                 input.parse(httpConnection->postValue);
-                
-                this->AddSlideColor(input);
+
+                if (clear) {
+                    this->playBack->clear();
+                }
+
+                PlayBackItemFade *item = new PlayBackItemFade(this->apa102, &input);
+
+                this->playBack->push(item);
                 
                 httpConnection->setResponseContentType(std::string("text/html"));
                 json::Object o;
@@ -136,29 +115,17 @@ class Urls{
                 o.set(std::string("ledStatus"), this->apa102->getLedStatus());
                 o.set(std::string("inputCount"), (int)input.count());
                 httpConnection->setResponseData(o.json());
-            } catch(...){
+            } catch(...) {
                 httpConnection->setResponseHttpStatus(500);
             }
         }
 
-        void slideColorAndClear(HttpConnection* httpConnection) {    
-            try {
-                printf("Post data = %s\n", httpConnection->postValue.c_str());
-                json::Object input;
-                input.parse(httpConnection->postValue);
-                
-                this->playBack->clear();
-                this->AddSlideColor(input);
-                
-                httpConnection->setResponseContentType(std::string("text/html"));
-                json::Object o;
-                o.set(std::string("count"), this->apa102->getCount());
-                o.set(std::string("ledStatus"), this->apa102->getLedStatus());
-                o.set(std::string("inputCount"), (int)input.count());
-                httpConnection->setResponseData(o.json());
-            } catch(...){
-                httpConnection->setResponseHttpStatus(500);
-            }
+        void fadeColor(HttpConnection* httpConnection) {    
+            this->fadeColor(httpConnection, false);
+        }
+
+        void fadeColorAndClear(HttpConnection* httpConnection) {    
+            this->fadeColor(httpConnection, true);
         }
 
 
@@ -168,9 +135,9 @@ class Urls{
             {std::string("/"), &Urls::root }
             ,{std::string("/clear"), &Urls::clear}
             ,{std::string("/solidColor"), &Urls::solidColor}
-            ,{std::string("/slideColor"), &Urls::slideColor}
+            ,{std::string("/fadeColor"), &Urls::fadeColor}
             ,{std::string("/solidColorAndClear"), &Urls::solidColorAndClear}
-            ,{std::string("/slideColorAndClear"), &Urls::slideColorAndClear}
+            ,{std::string("/fadeColorAndClear"), &Urls::fadeColorAndClear}
         };
         APA102 *apa102;
         PlayBack *playBack;
