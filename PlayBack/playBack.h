@@ -3,7 +3,7 @@
 
 #include <queue>
 
-#include "apa102.h"
+#include "../apa102.h"
 #include "playBackItem.h"
 
 class PlayBack {

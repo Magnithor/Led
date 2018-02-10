@@ -4,8 +4,8 @@
 #include "apa102.h"
 #include "httpServer.h"
 #include "urls.h"
-#include "playBack.h"
-#include "playBackItemSlide.h"
+#include "PlayBack/playBack.h"
+#include "PlayBack/playBackItemSlide.h"
 #include "json.h"
 #include "mqtt.h"
 

@@ -177,10 +177,10 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
         this->valueMap.clear();
     }
 
-    Value* Object::get( std::string key) {
-        return this->valueMap[key];
+    Value* Object::get(const std::string key) const {
+        return this->valueMap.at(key);
     }
-    bool Object::hasKey(std::string key) {
+    bool Object::hasKey(const std::string key) const {
         return this->valueMap.find( key ) != this->valueMap.end();
     }
 
@@ -245,11 +245,13 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 if (pos == json.length()) {
                     return 5;
                 }
-                Value * value = new Value();
+
+                Value* value = new Value();
                 int parseValue = value->parse(pos, json);
                 if (parseValue != 0) {
                     return parseValue;
                 }
+
                 ignoreWhiteSpace(pos, json);
                 if (pos == json.length()) {
                     return 6;
@@ -504,9 +506,10 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                 if (result == 0) {
                     return 0;
                 }
-                    delete this->valueArray;
-                    this->type = nullType;
-                    return result;                      
+
+                delete this->valueObject;
+                this->type = nullType;
+                return result;                      
             }
             break;
             case '[':  //array
@@ -517,6 +520,7 @@ std::string escape_string( const std::string &input, const bool quote = false ) 
                     if (result == 0) {
                         return 0;
                     }
+
                     delete this->valueArray;
                     this->type = nullType;
                     return result;                    

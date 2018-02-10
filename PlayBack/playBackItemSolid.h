@@ -2,7 +2,7 @@
 #define PLAYBACKITEMSOLID_H
 
 #include "playBackItem.h"
-#include "apa102.h"
+#include "../apa102.h"
 #include <sys/time.h>
 
 class PlayBackItemSolid : public PlayBackItem {

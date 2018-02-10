@@ -7,10 +7,10 @@
 #include "json.h"
 #include <string>
 #include "apa102.h"
-#include "playBack.h"
-#include "playBackItemSolid.h"
-#include "playBackItemSlide.h"
-#include "playBackItemFade.h"
+#include "PlayBack/playBack.h"
+#include "PlayBack/playBackItemSolid.h"
+#include "PlayBack/playBackItemSlide.h"
+#include "PlayBack/playBackItemFade.h"
 
 class Urls{
     private:

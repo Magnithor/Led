@@ -2,9 +2,9 @@
 #define PLAYBACKITEMFADE_H
 
 #include "playBackItem.h"
-#include "apa102.h"
+#include "../apa102.h"
 #include <sys/time.h>
-#include "json.h"
+#include "../json.h"
 #include <string>
 
 
@@ -25,6 +25,8 @@ public:
     this->colors = NULL;
     this->first = true;
     this->led = apa102;
+    //json::Object* from = input->get(std::string("from"));
+    //json::Object* to = input->get(std::string("to"));
     this->redFrom = input->get(std::string("redFrom"))->getInt(); 
     this->greenFrom = input->get(std::string("greenFrom"))->getInt(); 
     this->blueFrom = input->get(std::string("blueFrom"))->getInt();

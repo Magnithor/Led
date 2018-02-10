@@ -32,8 +32,8 @@ namespace json
 
             void set(std::string key, const int value);
             void set(std::string key, const double value);
-            Value* get(std::string key);
-            bool hasKey(std::string key);
+            Value* get(const std::string key) const;
+            bool hasKey(const std::string key) const;
             int count();
             void clear();
             std::string json();

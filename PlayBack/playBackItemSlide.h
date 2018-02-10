@@ -2,9 +2,9 @@
 #define PLAYBACKITEMSLIDE_H
 
 #include "playBackItem.h"
-#include "apa102.h"
+#include "../apa102.h"
 #include <sys/time.h>
-#include "json.h"
+#include "../json.h"
 #include <string>
 
 class PlayBackItemSlide : public PlayBackItem {

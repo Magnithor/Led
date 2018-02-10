@@ -10,8 +10,8 @@ USER_LIBS=
 TEST_CFLAGS=-lstdc++ -Werror -Wall -g -Os -std=c++11
 #KERNEL = /home/magni/source/build_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/linux-4.9.67
 
-TEST_OBJS = test.o jsonTest.o testJson.o
-OBJS = json.o apa102.o playBackItem.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o playBack.o main.o playBackItemSolid.o playBackItemSlide.o playBackItemFade.o mqtt.o
+TEST_OBJS = test.o jsonTest.o testJson.o testColor.o
+OBJS = json.o apa102.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o mqtt.o main.o playBack.o playBackItemSolid.o playBackItemSlide.o playBackItemFade.o playBackItem.o colorParse.o color.o colorSolid.o
 
 export STAGING_DIR="/home/magni/source/staging_dir"
 
@@ -44,20 +44,29 @@ apa102.o: apa102.cpp
 httpServer.o: httpServer.cpp
 	$(CXX) $(CFLAGS) -c httpServer.cpp  $(LDFLAGS)
 
-playBack.o: playBack.cpp
-	$(CXX) $(CFLAGS) -c playBack.cpp  $(LDFLAGS)
+playBack.o: PlayBack/playBack.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/playBack.cpp  $(LDFLAGS)
 
-playBackItem.o: playBackItem.cpp
-	$(CXX) $(CFLAGS) -c playBackItem.cpp  $(LDFLAGS)
+playBackItem.o: PlayBack/playBackItem.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/playBackItem.cpp  $(LDFLAGS)
 
-playBackItemSolid.o: playBackItemSolid.cpp
-	$(CXX) $(CFLAGS) -c playBackItemSolid.cpp  $(LDFLAGS)
+playBackItemSolid.o: PlayBack/playBackItemSolid.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/playBackItemSolid.cpp  $(LDFLAGS)
 
-playBackItemSlide.o: playBackItemSlide.cpp
-	$(CXX) $(CFLAGS) -c playBackItemSlide.cpp  $(LDFLAGS)
+playBackItemSlide.o: PlayBack/playBackItemSlide.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/playBackItemSlide.cpp  $(LDFLAGS)
 
-playBackItemFade.o: playBackItemFade.cpp
-	$(CXX) $(CFLAGS) -c playBackItemFade.cpp  $(LDFLAGS)
+playBackItemFade.o: PlayBack/playBackItemFade.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/playBackItemFade.cpp  $(LDFLAGS)
+
+colorParse.o: PlayBack/colorParse.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/colorParse.cpp  $(LDFLAGS)
+
+color.o: PlayBack/color.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/color.cpp  $(LDFLAGS)
+
+colorSolid.o: PlayBack/colorSolid.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/colorSolid.cpp  $(LDFLAGS)
 
 urls.o: urls.cpp
 	$(CXX) $(CFLAGS) -c urls.cpp  $(LDFLAGS)
@@ -71,6 +80,9 @@ jsonTest.o: json.cpp
 testJson.o: testJson.cpp
 	g++ $(TEST_CFLAGS) -c testJson.cpp 
 
+testColor.o: testColor.cpp
+	g++ $(TEST_CFLAGS) -c testColor.cpp 
+
 test.o: test.cpp
 	g++ $(TEST_CFLAGS) -c test.cpp 
 
@@ -79,5 +91,6 @@ test: clean $(TEST_OBJS)
 	./test
 
 clean:
-	@rm -rf *.o $(OUTFILE)
+	@rm -rf *.o  PlayBack/*.o $(OUTFILE)
+
 	echo "clean done"
