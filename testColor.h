@@ -2,6 +2,7 @@
 #include "json.h"
 #include "PlayBack/colorParse.h"
 #include "PlayBack/colorSolid.h"
+#include "PlayBack/colorPattern.h"
 #include <string>
 
 class ColorTest : public CppUnit::TestFixture  {
@@ -34,8 +35,6 @@ public:
     CPPUNIT_ASSERT_MESSAGE(test, color != NULL);
     ColorSolid* colorSolid = dynamic_cast<ColorSolid*>(color);
     CPPUNIT_ASSERT_MESSAGE(test, colorSolid != NULL);
-
-
 
     if (hasRed) {
       CPPUNIT_ASSERT_MESSAGE(test, colorSolid->red == red); 
@@ -72,14 +71,22 @@ public:
     this->testSolidColor(std::string("1,225,3,4"), true, (uint8_t) 1, true, (uint8_t) 255, true, (uint8_t) 3, false, (uint8_t) 4);
   }
 
+  void testPattern() 
+  {
+    CPPUNIT_ASSERT(false);
+  }
 
 
   static CppUnit::Test *suite()
   {
     CppUnit::TestSuite *suiteOfTests = new CppUnit::TestSuite( "Color" );
+
     suiteOfTests->addTest( new CppUnit::TestCaller<ColorTest>( 
                                    "test solidColor", 
                                    &ColorTest::testSolid ) );
+    suiteOfTests->addTest( new CppUnit::TestCaller<ColorTest>( 
+                                   "test patternColor", 
+                                   &ColorTest::testPattern ) );
     
     return suiteOfTests;
   }

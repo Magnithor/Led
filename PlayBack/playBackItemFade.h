@@ -2,6 +2,7 @@
 #define PLAYBACKITEMFADE_H
 
 #include "playBackItem.h"
+#include "color.h"
 #include "../apa102.h"
 #include <sys/time.h>
 #include "../json.h"
@@ -14,48 +15,14 @@ private:
   Rgb_bright_color *colors;
   bool first;
   double startTimer;
-  uint8_t redFrom, greenFrom, blueFrom, brightnessFrom;
-  int redDelta, greenDelta, blueDelta, brightnessDelta;
+  Color* from;
+  Color* to;
   double timeCircle;
   double timeRun;
   bool hasTimeRun;
   timeval now;
 public:
-  PlayBackItemFade(APA102 *apa102, json::Object *input) {
-    this->colors = NULL;
-    this->first = true;
-    this->led = apa102;
-    //json::Object* from = input->get(std::string("from"));
-    //json::Object* to = input->get(std::string("to"));
-    this->redFrom = input->get(std::string("redFrom"))->getInt(); 
-    this->greenFrom = input->get(std::string("greenFrom"))->getInt(); 
-    this->blueFrom = input->get(std::string("blueFrom"))->getInt();
-    this->brightnessFrom = input->get(std::string("brightnessFrom"))->getInt();
-    uint8_t redTo = input->get(std::string("redTo"))->getInt();
-    uint8_t greenTo = input->get(std::string("greenTo"))->getInt();
-    uint8_t blueTo = input->get(std::string("blueTo"))->getInt();
-    uint8_t brightnessTo = input->get(std::string("brightnessTo"))->getInt();
-    this->timeCircle = input->get(std::string("timeCircle"))->getDouble();
-
-    this->redDelta = redTo - this->redFrom;
-    this->greenDelta = greenTo - this->greenFrom;
-    this->blueDelta = blueTo - this->blueFrom;
-    this->brightnessDelta = brightnessTo - this->brightnessFrom;
-
-    if (input->hasKey(std::string("time"))) {
-        this->timeRun = input->get(std::string("time"))->getDouble();
-        this->hasTimeRun = true;
-    }
-    else 
-    {
-        this->hasTimeRun = false;
-    }
-  }
-
-  PlayBackItemFade(APA102 *apa102, 
-        uint8_t redFrom, uint8_t greenFrom, uint8_t blueFrom, uint8_t brightnessFrom,
-        uint8_t redTo, uint8_t greenTo, uint8_t blueTo, uint8_t brightnessTo,
-        double timeCircle)  
+  PlayBackItemFade(APA102 *apa102, Color* fromValue, Color* toValue, double timeCircle, double timeRun)  
   {
       this->colors = NULL;
       this->first = true;
@@ -64,34 +31,23 @@ public:
 
       this->led = apa102;
       
-      this->redFrom = redFrom;
-      this->greenFrom = greenFrom;
-      this->blueFrom = blueFrom;
-      this->brightnessFrom = brightnessFrom;
-      
-      this->redDelta = redTo - redFrom;
-      this->greenDelta = greenTo - greenFrom;
-      this->blueDelta = blueTo - blueFrom;
-      this->brightnessDelta = brightnessTo - brightnessFrom;
-      this->hasTimeRun = false;
-  }
-
-  PlayBackItemFade(APA102 *apa102, 
-        uint8_t redFrom, uint8_t greenFrom, uint8_t blueFrom, uint8_t brightnessFrom,
-        uint8_t redTo, uint8_t greenTo, uint8_t blueTo, uint8_t brightnessTo,
-        double timeCircle, double timeRun) : PlayBackItemFade(apa102, 
-            redFrom, greenFrom, blueFrom, brightnessFrom,
-            redTo, greenTo, blueTo, brightnessTo,
-            timeCircle
-        )  
-  {
-      this->hasTimeRun = true;
+      this->from = fromValue;
+      this->to = toValue;
+      this->hasTimeRun = timeRun > 0;
       this->timeRun = timeRun;
   }
 
   ~PlayBackItemFade() {
       if (this->colors != NULL) {
         delete[] this->colors;
+      }
+
+      if (this->from != NULL) {
+          delete this->from;
+      }
+
+      if (this->to != NULL) {
+          delete this->to;
       }
   }
   
@@ -121,10 +77,14 @@ public:
 
       finished = false;
       for (int i =0; i < c; i++) {
-          this->colors[i].red = this->redFrom + (frac * this->redDelta); 
-          this->colors[i].green = this->greenFrom + (frac * this->greenDelta);
-          this->colors[i].blue = this->blueFrom + (frac * this->blueDelta);
-          this->colors[i].brightness = this->brightnessFrom + (frac * this->brightnessDelta);
+          uint8_t fromRed, fromGreen, fromBlue, fromBrightness,
+            toRed, toGreen, toBlue, toBrightness;
+          this->from->updateColor(i, fromRed, fromGreen, fromBlue, fromBrightness);
+          this->to->updateColor(i, toRed, toGreen, toBlue, toBrightness);
+          this->colors[i].red = fromRed + (frac * (toRed - fromRed)); 
+          this->colors[i].green = fromGreen + (frac * (toGreen - fromGreen));
+          this->colors[i].blue = fromBlue + (frac * (toBlue - fromBlue));
+          this->colors[i].brightness = fromBrightness + (frac * (toBrightness - fromBrightness));
       }  
       this->led->write(this->colors);
 

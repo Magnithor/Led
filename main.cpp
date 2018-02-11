@@ -6,6 +6,7 @@
 #include "urls.h"
 #include "PlayBack/playBack.h"
 #include "PlayBack/playBackItemSlide.h"
+#include "PlayBack/colorSolid.h"
 #include "json.h"
 #include "mqtt.h"
 
@@ -203,9 +204,10 @@ int main(int argc, char* argv[])
 
 */
 	PlayBackItem *item = new PlayBackItemFade(&apa102, 
-                (uint8_t)0,(uint8_t)255,(uint8_t)0,(uint8_t)1,
-                (uint8_t)0,(uint8_t)0,(uint8_t)255,(uint8_t)1,
-                30
+                new ColorSolid((uint8_t)0,(uint8_t)0,(uint8_t)255,(uint8_t)1),
+                new ColorSolid((uint8_t)0,(uint8_t)255,(uint8_t)0,(uint8_t)1),
+                3,
+                -1
         );
 	playBack.push(item);
 

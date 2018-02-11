@@ -11,26 +11,22 @@
 #include "PlayBack/playBackItemSolid.h"
 #include "PlayBack/playBackItemSlide.h"
 #include "PlayBack/playBackItemFade.h"
+#include "PlayBack/colorParse.h"
 
 class Urls{
     private:
         void AddSolidColor(json::Object input) {
             if (input.hasKey(std::string("time"))) {
                 this->playBack->push(new PlayBackItemSolid(this->apa102, 
-                    input.get(std::string("red"))->getInt(), 
-                    input.get(std::string("green"))->getInt(), 
-                    input.get(std::string("blue"))->getInt(), 
-                    input.get(std::string("brightness"))->getInt(),
+                    ColorParse::Parse(input.get(std::string("color"))->getObject()),
                     input.get(std::string("time"))->getDouble()
                     ));
             }
             else
             {
                 this->playBack->push(new PlayBackItemSolid(this->apa102, 
-                    input.get(std::string("red"))->getInt(), 
-                    input.get(std::string("green"))->getInt(), 
-                    input.get(std::string("blue"))->getInt(), 
-                    input.get(std::string("brightness"))->getInt()));                
+                    ColorParse::Parse(input.get(std::string("color"))->getObject()),
+                    -1));
             }
         }
 
@@ -105,7 +101,12 @@ class Urls{
                     this->playBack->clear();
                 }
 
-                PlayBackItemFade *item = new PlayBackItemFade(this->apa102, &input);
+                PlayBackItemFade *item = new PlayBackItemFade(this->apa102, 
+                    ColorParse::Parse(input.get(std::string("from"))->getObject()),
+                    ColorParse::Parse(input.get(std::string("to"))->getObject()),
+                    -1,
+                    -1
+                    );
 
                 this->playBack->push(item);
                 

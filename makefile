@@ -11,7 +11,7 @@ TEST_CFLAGS=-lstdc++ -Werror -Wall -g -Os -std=c++11
 #KERNEL = /home/magni/source/build_dir/toolchain-mipsel_24kc_gcc-5.5.0_musl/linux-4.9.67
 
 TEST_OBJS = test.o jsonTest.o testJson.o testColor.o
-OBJS = json.o apa102.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o mqtt.o main.o playBack.o playBackItemSolid.o playBackItemSlide.o playBackItemFade.o playBackItem.o colorParse.o color.o colorSolid.o
+OBJS = json.o apa102.o httpServer.o urls.o module.o fastgpio.o fastgpioomega2.o mqtt.o main.o playBack.o playBackItemSolid.o playBackItemSlide.o playBackItemFade.o playBackItem.o colorParse.o color.o colorSolid.o colorPattern.o
 
 export STAGING_DIR="/home/magni/source/staging_dir"
 
@@ -67,6 +67,9 @@ color.o: PlayBack/color.cpp
 
 colorSolid.o: PlayBack/colorSolid.cpp
 	$(CXX) $(CFLAGS) -c PlayBack/colorSolid.cpp  $(LDFLAGS)
+
+colorPattern.o: PlayBack/colorPattern.cpp
+	$(CXX) $(CFLAGS) -c PlayBack/colorPattern.cpp  $(LDFLAGS)
 
 urls.o: urls.cpp
 	$(CXX) $(CFLAGS) -c urls.cpp  $(LDFLAGS)

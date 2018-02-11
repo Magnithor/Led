@@ -1,23 +1,28 @@
-#ifndef COLOR_SOLID_H
-#define COLOR_SOLID_H
+#ifndef COLOR_PATTERN_H
+#define COLOR_PATTERN_H
 
 #include "color.h"
 #include <stdint.h>
 #include <string>
 #include "../json.h"
+#include <vector>
 
-class ColorSolid : public Color {
-    public:
-      uint8_t red;
-      uint8_t green;
-      uint8_t blue;
-      uint8_t brightness;
-    public:
-      ColorSolid(json::Object* o) {
+class ColorPattern : public Color {
+    private:
+      class ColorPatternItem {
+      public:
+        uint8_t red;
+        uint8_t green;
+        uint8_t blue;
+        uint8_t brightness; 
+        int size;
+      public:
+        ColorPatternItem(json::Object* o) {
            this->red = 0;
            this->green = 0;
            this->blue = 0;
            this->brightness = 0;
+           this->size = 1;
 
             std::string key = std::string("red");
             if (o->hasKey(key)){
@@ -51,21 +56,34 @@ class ColorSolid : public Color {
                 }
             }
       }
-      ColorSolid(uint8_t red, uint8_t green, uint8_t blue, uint8_t brightness) {
-          this->red = red;
-          this->green = green;
-          this->blue = blue;
-          this->brightness = brightness;
-      }
-      ~ColorSolid() {
-          
+      };
+
+      std::vector<ColorPatternItem*> values;
+
+    public:
+       ColorPattern(json::Object* o) {
+           json::Value* v = o->get(std::string("items"));
+           json::Array* a = v->getArray();
+           for (int i=0; i < a->count(); i++) {
+               ColorPatternItem* item = new ColorPatternItem(a->get(i)->getObject());
+               this->values.push_back(item);
+           }
+       }
+      ~ColorPattern() {
+        for (auto &item : this->values) {
+            delete item;
+        }
+
+        this->values.clear();
       }
 
       void updateColor(int index, uint8_t &redValue, uint8_t &greenValue, uint8_t &blueValue, uint8_t &brightnessValue) {
-          redValue = this->red;
-          greenValue = this->green;
-          blueValue = this->blue;
-          brightnessValue = this->brightness;
+          ColorPatternItem* item = this->values.at(index % this->values.size());
+
+          redValue = item->red;
+          greenValue = item->green;
+          blueValue = item->blue;
+          brightnessValue = item->brightness;          
       }
 
 };
