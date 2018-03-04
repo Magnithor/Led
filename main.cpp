@@ -7,6 +7,7 @@
 #include "PlayBack/playBack.h"
 #include "PlayBack/playBackItemSlide.h"
 #include "PlayBack/colorSolid.h"
+#include "PlayBack/colorPattern.h"
 #include "json.h"
 #include "mqtt.h"
 
@@ -203,10 +204,17 @@ int main(int argc, char* argv[])
         }
 
 */
+        ColorPattern* from = new ColorPattern();
+        ColorPattern* to = new ColorPattern();
+        from->AddItem(new ColorPattern::ColorPatternItem(0,0,80,1,20));
+        from->AddItem(new ColorPattern::ColorPatternItem(0,80,0,1,20));
+        to->AddItem(new ColorPattern::ColorPatternItem(0,80,0,1,20));
+        to->AddItem(new ColorPattern::ColorPatternItem(0,0,80,1,20));
+        
 	PlayBackItem *item = new PlayBackItemFade(&apa102, 
-                new ColorSolid((uint8_t)0,(uint8_t)0,(uint8_t)255,(uint8_t)1),
-                new ColorSolid((uint8_t)0,(uint8_t)255,(uint8_t)0,(uint8_t)1),
-                3,
+                from,
+                to,
+                1.2,
                 -1
         );
 	playBack.push(item);

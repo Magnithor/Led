@@ -104,7 +104,7 @@ class Urls{
                 PlayBackItemFade *item = new PlayBackItemFade(this->apa102, 
                     ColorParse::Parse(input.get(std::string("from"))->getObject()),
                     ColorParse::Parse(input.get(std::string("to"))->getObject()),
-                    -1,
+                    1,
                     -1
                     );
 

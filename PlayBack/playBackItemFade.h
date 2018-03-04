@@ -74,6 +74,10 @@ public:
       if ( (long)radio% 2 == 1) {
           frac = 1 - frac;
       }
+     
+      if (frac < 0){
+          frac *= -1;
+      }
 
       finished = false;
       for (int i =0; i < c; i++) {
@@ -81,10 +85,17 @@ public:
             toRed, toGreen, toBlue, toBrightness;
           this->from->updateColor(i, fromRed, fromGreen, fromBlue, fromBrightness);
           this->to->updateColor(i, toRed, toGreen, toBlue, toBrightness);
+          //if (i == 0) {
+            //printf("R=%d G=%d B=%d br=%d\n", fromBlue, toGreen, toBlue, toBrightness);
+          //}
           this->colors[i].red = fromRed + (frac * (toRed - fromRed)); 
           this->colors[i].green = fromGreen + (frac * (toGreen - fromGreen));
-          this->colors[i].blue = fromBlue + (frac * (toBlue - fromBlue));
+          this->colors[i].blue = fromBlue + (frac * (toBlue -  fromBlue));
           this->colors[i].brightness = fromBrightness + (frac * (toBrightness - fromBrightness));
+        //  if (i == 0) {
+          //  printf("f=%f G=%d B=%d %d %d %f \n", frac, this->colors[i].green,  this->colors[i].blue, toBlue, fromBlue, 
+           // fromBlue + (frac * (toBlue -  fromBlue)));
+          //}
       }  
       this->led->write(this->colors);
 
