@@ -6,15 +6,18 @@
 #include <sys/time.h>
 #include "../json.h"
 #include <string>
+#include "color.h"
 
 class PlayBackItemSlide : public PlayBackItem {
 private:
   APA102* led;
   Rgb_bright_color *colors;
+  Color *colorItem;
   bool first;
   double startTimer;
   uint8_t redFrom, greenFrom, blueFrom, brightnessFrom;
   int redDelta, greenDelta, blueDelta, brightnessDelta;
+  int size;
   double timeCircle;
   double timeRun;
   bool hasTimeRun;
@@ -23,6 +26,15 @@ public:
   PlayBackItemSlide(APA102 *apa102, json::Object input) {
       this->colors = NULL;
       this->led = apa102;      
+  }
+
+  PlayBackItemSlide(APA102 *apa102, Color *colorItem, int size, double timeCircle ) {
+      this->led = apa102;      
+      this->colorItem = colorItem;
+      this->timeCircle = timeCircle;
+      this->hasTimeRun = false;
+      this->first = true;
+      this->size = size;
   }
 
   ~PlayBackItemSlide() {
@@ -57,10 +69,11 @@ public:
 
       finished = false;
       for (int i =0; i < c; i++) {
-          this->colors[i].red = this->redFrom + (frac * this->redDelta); 
-          this->colors[i].green = this->greenFrom + (frac * this->greenDelta);
-          this->colors[i].blue = this->blueFrom + (frac * this->blueDelta);
-          this->colors[i].brightness = this->brightnessFrom + (frac * this->brightnessDelta);
+          this->colorItem->updateColor(i + (int)((size-c)*radio),
+            this->colors[i].red,
+            this->colors[i].green,
+            this->colors[i].blue,
+            this->colors[i].brightness);
       }  
       this->led->write(this->colors);
 

@@ -211,11 +211,10 @@ int main(int argc, char* argv[])
         to->AddItem(new ColorPattern::ColorPatternItem(0,80,0,1,20));
         to->AddItem(new ColorPattern::ColorPatternItem(0,0,80,1,20));
         
-	PlayBackItem *item = new PlayBackItemFade(&apa102, 
-                from,
-                to,
-                1.2,
-                -1
+	PlayBackItemSlide *item = new PlayBackItemSlide(&apa102, 
+                from,  
+                2000,      
+                50
         );
 	playBack.push(item);
 
